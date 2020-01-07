@@ -14,7 +14,21 @@ Plug 'scrooloose/nerdtree'
 Plug 'tpope/vim-surround'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-Plug 'ctrlpvim/ctrlp.vim'
+
+"Plug 'ctrlpvim/ctrlp.vim'
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
+" Give the :Files command a preview window
+command! -bang -nargs=? -complete=dir Files
+    \ call fzf#vim#files(<q-args>, fzf#vim#with_preview({'options': ['--layout=reverse', '--info=inline']}), <bang>0)
+
+" Hide status line in fzf window
+if has('nvim') && !exists('g:fzf_layout')
+  autocmd! FileType fzf
+  autocmd  FileType fzf set laststatus=0 noshowmode noruler
+    \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
+endif
+
 Plug 'tomasr/molokai'
 Plug 'kovisoft/paredit', { 'for': 'clojure' }
 "Plug 'octol/vim-cpp-enhanced-highlight'
@@ -39,6 +53,7 @@ let g:LanguageClient_rootMarkers = {
 
 "Plug 'airblade/vim-gitgutter'
 Plug 'preservim/nerdcommenter'
+Plug 'sakhnik/nvim-gdb', { 'do': ':!./install.sh \| UpdateRemotePlugins' }
 
 
 call plug#end()
@@ -84,6 +99,7 @@ let maplocalleader = ' '
 " editor
 nnoremap <leader>Q :qa!<cr>
 nmap <C-n> :NERDTreeToggle<CR>
+nnoremap <leader>` :edit ~/.config/nvim/init.vim<cr>
 
 " saving
 nnoremap <leader>S :wa<cr>
@@ -109,6 +125,8 @@ nnoremap <leader>h :call LanguageClient#textDocument_hover()<CR>
 nnoremap <leader>d :call LanguageClient#textDocument_definition()<CR>
 nnoremap <leader>f :call LanguageClient#textDocument_formatting()<CR>
 nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
+
+
 
 " Rust specific bindings
 au FileType rust set makeprg=cargo\ build
