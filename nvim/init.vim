@@ -1,13 +1,13 @@
-"  Need to manually install some stuff:
-"     vim-plug:  (Plugin manager for vim/neovim)
-"         curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-"
-"     pynvim:  (used by deoplete autocompletion plugin)
-"         pip3 install neovim
-"
-"     git:      sudo dnf install git
-"     bat:      sudo dnf install bat      (Used for colorized preview window when searching files)
-"     ripgrep:  sudo dnf install ripgrep
+"  Manual steps for new setup:
+"     vim-plug:      curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+"     pynvim:        pip3 install neovim --user   (used by deoplete autocompletion plugin)
+"     git:           sudo dnf install git
+"     ripgrep:       sudo dnf install ripgrep
+"     bat:           sudo dnf install bat      (Used for colorized preview window when searching files)
+"     font:          sudo dnf install adobe-source-code-pro-fonts  (I use Mono Regular with 13pt font size in my terminal settings)
+"     clangd:        sudo dnf install clang-tools-extra
+"     rust:          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+"     ra_lsp_server: git clone https://github.com/rust-analyzer/rust-analyzer && cd rust-analyzer && cargo xtask install
 "
 "
 " ----------------------------------------------------------------
@@ -30,21 +30,6 @@ Plug 'tpope/vim-surround'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'vim-airline/vim-airline'
 let g:airline_theme = "palenight"
-
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-Plug 'junegunn/fzf.vim'
-" Hide status line in fzf window
-if has('nvim') && !exists('g:fzf_layout')
-  autocmd! FileType fzf
-  autocmd  FileType fzf set laststatus=0 noshowmode noruler
-    \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
-endif
-" Give the :Files command a preview window
-"command! -bang -nargs=? -complete=dir Files
-    "\ call fzf#vim#files(<q-args>, fzf#vim#with_preview({'options': ['--layout=reverse', '--info=inline']}), <bang>0)
-command! -bang -nargs=? -complete=dir Files
-    \ call fzf#vim#files(<q-args>, {'options': ['--layout=reverse', '--info=inline', '--preview', '~/.config/nvim/plugged/fzf.vim/bin/preview.sh {}']}, <bang>0)
-command! -bang ProjectFiles call fzf#vim#files('~/projects/camera-build/subprojects/camera-apps', <bang>0)
 
 Plug 'tomasr/molokai'
 Plug 'kovisoft/paredit', { 'for': 'clojure' }
@@ -75,6 +60,36 @@ let g:LanguageClient_rootMarkers = {
 Plug 'preservim/nerdcommenter'
 Plug 'sakhnik/nvim-gdb', { 'do': ':!./install.sh \| UpdateRemotePlugins' }
 
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
+" Hide status line in fzf window
+if has('nvim') && !exists('g:fzf_layout')
+  autocmd! FileType fzf
+  autocmd  FileType fzf set laststatus=0 noshowmode noruler
+    \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
+endif
+" Give the :Files command a preview window
+command! -bang -nargs=? -complete=dir Files
+    \ call fzf#vim#files(<q-args>, {'options': ['--layout=reverse', '--info=inline', '--preview', '~/.config/nvim/plugged/fzf.vim/bin/preview.sh {}']}, <bang>0)
+" Give git grep a preview window
+command! -bang -nargs=* GGrep
+  \ call fzf#vim#grep(
+  \   'git grep --line-number '.shellescape(<q-args>), 0,
+  \   fzf#vim#with_preview({'dir': systemlist('git rev-parse --show-toplevel')[0]}), <bang>0)
+" Give ripgrep a preview window so matches can be seen in context
+command! -bang -nargs=* Rg
+  \ call fzf#vim#grep(
+  \   'rg --column --line-number --no-heading --color=always --smart-case '.shellescape(<q-args>), 1,
+  \   fzf#vim#with_preview(), <bang>0)
+" Convenience commands to only search for files from a different root
+command! -bang -nargs=? -complete=dir CameraAppsFiles
+    \ call fzf#vim#files('~/projects/camera-build/subprojects/camera-apps', {'options': ['--layout=reverse', '--info=inline', '--preview', '~/.config/nvim/plugged/fzf.vim/bin/preview.sh {}']}, <bang>0)
+
+command! -bang CameraAppsRg call fzf#vim#files('~/projects/camera-build/subprojects/camera-apps', <bang>0)
+"command! -bang -nargs=* CameraAppsRg
+"  \ call fzf#vim#grep(
+"  \   'rg --column --line-number --no-heading --color=always --smart-case '.shellescape('~/projects/camera-build/subprojects/camera-apps'), 1,
+"  \   fzf#vim#with_preview(), <bang>0)
 
 call plug#end()
 
@@ -84,6 +99,7 @@ call plug#end()
 set number
 set autoindent
 set smartindent
+set nowrap
 "set lazyredraw
 set hlsearch
 set incsearch
@@ -147,9 +163,11 @@ nnoremap <leader>f :call LanguageClient#textDocument_formatting()<cr>
 nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<cr>
 
 " Searching
-nnoremap <leader>p :Files<cr>
-nnoremap <leader><S-p> :ProjectFiles<cr>
-nnoremap <leader>s :Rg<cr>
+nnoremap <leader>p :CameraAppsFiles<cr>
+nnoremap <leader>P :Files<cr>
+nnoremap <leader>s :CameraAppsRg<cr>
+nnoremap <leader>S :Rg<cr>
+nnoremap <leader>gg :GGrep<cr>
 
 
 
