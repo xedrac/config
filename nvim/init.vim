@@ -50,7 +50,7 @@ Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': 'bash install.s
 let g:LanguageClient_autoStart = 1
 let g:LanguageClient_serverCommands = {
     \ 'rust': ['rustup', 'run', 'stable', 'ra_lsp_server'],
-    \ 'cpp': ['clangd'],
+    \ 'cpp': ['clangd', '-background-index'],
     \ 'python': ['/usr/local/bin/pyls'],
     \ }
 let g:LanguageClient_rootMarkers = {
@@ -68,28 +68,31 @@ if has('nvim') && !exists('g:fzf_layout')
   autocmd  FileType fzf set laststatus=0 noshowmode noruler
     \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
 endif
+
 " Give the :Files command a preview window
 command! -bang -nargs=? -complete=dir Files
     \ call fzf#vim#files(<q-args>, {'options': ['--layout=reverse', '--info=inline', '--preview', '~/.config/nvim/plugged/fzf.vim/bin/preview.sh {}']}, <bang>0)
+
+" Convenience commands to only search for files from camera-apps directory
+command! -bang -nargs=? -complete=dir CameraAppsFiles
+    \ call fzf#vim#files('~/projects/camera-build/subprojects/camera-apps', {'options': ['--layout=reverse', '--info=inline', '--preview', '~/.config/nvim/plugged/fzf.vim/bin/preview.sh {}']}, <bang>0)
+
 " Give git grep a preview window
 command! -bang -nargs=* GGrep
   \ call fzf#vim#grep(
   \   'git grep --line-number '.shellescape(<q-args>), 0,
   \   fzf#vim#with_preview({'dir': systemlist('git rev-parse --show-toplevel')[0]}), <bang>0)
+
 " Give ripgrep a preview window so matches can be seen in context
 command! -bang -nargs=* Rg
   \ call fzf#vim#grep(
-  \   'rg --column --line-number --no-heading --color=always --smart-case '.shellescape(<q-args>), 1,
+  \   'rg -F --column --line-number --no-heading --color=always --smart-case -g "*.{cpp,c,h,rs,proto,toml,lock,txt,sh,py}" '.shellescape(<q-args>), 1,
   \   fzf#vim#with_preview(), <bang>0)
-" Convenience commands to only search for files from a different root
-command! -bang -nargs=? -complete=dir CameraAppsFiles
-    \ call fzf#vim#files('~/projects/camera-build/subprojects/camera-apps', {'options': ['--layout=reverse', '--info=inline', '--preview', '~/.config/nvim/plugged/fzf.vim/bin/preview.sh {}']}, <bang>0)
 
-command! -bang CameraAppsRg call fzf#vim#files('~/projects/camera-build/subprojects/camera-apps', <bang>0)
-"command! -bang -nargs=* CameraAppsRg
-"  \ call fzf#vim#grep(
-"  \   'rg --column --line-number --no-heading --color=always --smart-case '.shellescape('~/projects/camera-build/subprojects/camera-apps'), 1,
-"  \   fzf#vim#with_preview(), <bang>0)
+command! -bang -nargs=* CameraAppsRg
+  \ call fzf#vim#grep(
+  \   'rg --column --line-number --no-heading --color=always --smart-case -g "*.{cpp,c,h,rs,proto,toml,lock,txt,sh,py}" '.shellescape(<q-args>), 1,
+  \   fzf#vim#with_preview(), <bang>0)
 
 call plug#end()
 
