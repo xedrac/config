@@ -80,16 +80,27 @@ command! -bang -nargs=? -complete=dir CameraAppsFiles
 " Give git grep a preview window
 command! -bang -nargs=* GGrep
   \ call fzf#vim#grep(
-  \   'git grep --line-number '.shellescape(<q-args>), 0,
+  \   'git grep --line-number --recurse-submodules '.shellescape(<q-args>), 0,
   \   fzf#vim#with_preview({'dir': systemlist('git rev-parse --show-toplevel')[0]}), <bang>0)
 
 " Give ripgrep a preview window so matches can be seen in context
-command! -bang -nargs=* Rg
+command! -bang -nargs=* CameraBuildRg
   \ call fzf#vim#grep(
-  \   'rg -F --column --line-number --no-heading --color=always --smart-case -g "*.{cpp,c,h,rs,proto,toml,lock,txt,sh,py}" '.shellescape(<q-args>), 1,
+  \   'rg --column --line-number --no-heading --color=always --smart-case
+  \       -t rust -t cpp -t c -t qml -t protobuf -t cmake -t toml -t py -t sh
+  \       -g "subprojects/camera-apps/**"
+  \       -g "subprojects/crates/**"
+  \       -g "subprojects/camera-connect/proto/**"
+  \       -g "subprojects/camera-soc/s5l_linux_sdk/ambarella/oryx/video/**"
+  \       -g "subprojects/camera-soc/s5l_linux_sdk/ambarella/boards/**"
+  \       -g "!**/target/**"
+  \       -g "!subprojects/camera-apps/ble/**"
+  \       -g "!subprojects/camera-apps/docs/**"
+  \       -g "!subprojects/camera-apps/oryx_examples/**"
+  \       '.shellescape(<q-args>), 1,
   \   fzf#vim#with_preview(), <bang>0)
 
-command! -bang -nargs=* CameraAppsRg
+command! -bang -nargs=* GenericRg
   \ call fzf#vim#grep(
   \   'rg --column --line-number --no-heading --color=always --smart-case -g "*.{cpp,c,h,rs,proto,toml,lock,txt,sh,py}" '.shellescape(<q-args>), 1,
   \   fzf#vim#with_preview(), <bang>0)
@@ -128,6 +139,9 @@ if (has("termguicolors"))
   set termguicolors
 endif
 
+" Enable globstar option for bash so we can use **/*.cpp style globbing
+:set shell+=\ -O\ globstar
+
 
 " ----------------------------------------------------------------
 " Key mappings
@@ -139,6 +153,8 @@ let maplocalleader = ' '
 nnoremap <leader>Q :qa!<cr>
 nmap <C-n> :NERDTreeToggle<CR>
 nnoremap <leader>` :edit ~/.config/nvim/init.vim<cr>
+" Reload vim config
+nnoremap <F12> :so ~/.config/nvim/init.vim<cr>
 
 " saving
 nnoremap <C-S> :wa<cr>
@@ -168,10 +184,22 @@ nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<cr>
 " Searching
 nnoremap <leader>p :CameraAppsFiles<cr>
 nnoremap <leader>P :Files<cr>
-nnoremap <leader>s :CameraAppsRg<cr>
-nnoremap <leader>S :Rg<cr>
-nnoremap <leader>gg :GGrep<cr>
+nnoremap <leader>S :GenericRg<cr>
+nnoremap <leader>s :CameraBuildRg<cr>
 
+" Git integration
+nnoremap <leader>gg :GGrep<cr>
+nnoremap <leader>gs :Gstatus<cr>
+nnoremap <leader>gp :Gpull<cr>
+nnoremap <leader>gP :Gpush<cr>
+nnoremap <leader>gm :Gmerge<cr>
+nnoremap <leader>gr :Grebase<cr>
+nnoremap <leader>gf :Gfetche<cr>
+nnoremap <leader>gb :Gblame<cr>
+nnoremap <leader>ge :Gedit<cr>
+nnoremap <leader>gM :Gmove<cr>
+nnoremap <leader>gd :Gdelete<cr>
+nnoremap <leader>gl :GLog<cr>
 
 
 " Rust specific bindings
