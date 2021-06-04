@@ -27,11 +27,11 @@ Plug 'scrooloose/nerdtree'
 let g:NERDTreeWinSize=50
 
 Plug 'tpope/vim-surround'
-Plug 'vim-airline/vim-airline-themes'
-Plug 'vim-airline/vim-airline'
-let g:airline_theme = "palenight"
+"Plug 'vim-airline/vim-airline-themes'
+"Plug 'vim-airline/vim-airline'
+"let g:airline_theme = "palenight"
 
-Plug 'tomasr/molokai'
+"Plug 'tomasr/molokai'
 Plug 'kovisoft/paredit', { 'for': 'clojure' }
 Plug 'iamcco/markdown-preview.nvim', { 'do': ':call mkdp#util#install()', 'for': 'markdown', 'on': 'MarkdownPreview' }
 Plug 'bling/vim-bufferline'
@@ -49,7 +49,7 @@ let g:deoplete#enable_at_startup = 1
 Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': 'bash install.sh' }
 let g:LanguageClient_autoStart = 1
 let g:LanguageClient_serverCommands = {
-    \ 'rust': ['rustup', 'run', 'stable', 'ra_lsp_server'],
+    \ 'rust': ['rustup', 'run', 'stable', 'rust-analyzer'],
     \ 'cpp': ['clangd', '-background-index'],
     \ 'python': ['/usr/local/bin/pyls'],
     \ }
@@ -57,8 +57,8 @@ let g:LanguageClient_rootMarkers = {
     \ 'rust': ['Cargo.lock'],
     \ }
 
-Plug 'preservim/nerdcommenter'
-Plug 'sakhnik/nvim-gdb', { 'do': ':!./install.sh \| UpdateRemotePlugins' }
+"Plug 'preservim/nerdcommenter'
+"Plug 'sakhnik/nvim-gdb', { 'do': ':!./install.sh \| UpdateRemotePlugins' }
 
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
@@ -75,7 +75,7 @@ command! -bang -nargs=? -complete=dir Files
 
 " Convenience commands to only search for files from camera-apps directory
 command! -bang -nargs=? -complete=dir CameraAppsFiles
-    \ call fzf#vim#files('~/projects/camera-build/subprojects/camera-apps', {'options': ['--layout=reverse', '--info=inline', '--preview', '~/.config/nvim/plugged/fzf.vim/bin/preview.sh {}']}, <bang>0)
+    \ call fzf#vim#files('~/projects/work/camera-build/subprojects/camera-apps', {'options': ['--layout=reverse', '--info=inline', '--preview', '~/.config/nvim/plugged/fzf.vim/bin/preview.sh {}']}, <bang>0)
 
 " Give git grep a preview window
 command! -bang -nargs=* GGrep
@@ -106,7 +106,7 @@ command! -bang -nargs=* GenericRg
   \   fzf#vim#with_preview(), <bang>0)
 
 call plug#end()
-
+"
 " ----------------------------------------------------------------
 " Vim settings
 " ----------------------------------------------------------------
@@ -140,7 +140,7 @@ if (has("termguicolors"))
 endif
 
 " Enable globstar option for bash so we can use **/*.cpp style globbing
-:set shell+=\ -O\ globstar
+":set shell+=\ -O\ globstar
 
 
 " ----------------------------------------------------------------
@@ -149,10 +149,15 @@ endif
 let mapleader      = ' '
 let maplocalleader = ' '
 
+nnoremap ; :
+nnoremap : ;
+
 " editor
+inoremap ht <ESC>
 nnoremap <leader>Q :qa!<cr>
-nmap <C-n> :NERDTreeToggle<CR>
+nnoremap <C-n> :NERDTreeToggle<cr>
 nnoremap <leader>` :edit ~/.config/nvim/init.vim<cr>
+nnoremap <leader>c :!<Space>
 " Reload vim config
 nnoremap <F12> :so ~/.config/nvim/init.vim<cr>
 
@@ -167,6 +172,8 @@ nnoremap <leader>bQ :bd!<cr>
 nnoremap <leader>bn :bn<cr>
 nnoremap <leader>bp :bp<cr>
 nnoremap <leader>bN :enew<cr>
+"nnoremap <F5> :buffers<CR>:buffer<Space>
+nnoremap <leader>n :buffers<CR>:buffer<Space>
 
 " Window management
 nmap <A-j> <C-w>w5j<C-w>w
@@ -180,16 +187,17 @@ nnoremap <leader>h :call LanguageClient#textDocument_hover()<cr>
 nnoremap <leader>d :call LanguageClient#textDocument_definition()<cr>
 nnoremap <leader>f :call LanguageClient#textDocument_formatting()<cr>
 nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<cr>
+nnoremap <leader>o <C-o>
 
 " Searching
 nnoremap <leader>p :CameraAppsFiles<cr>
-nnoremap <leader>P :Files<cr>
-nnoremap <leader>S :GenericRg<cr>
-nnoremap <leader>s :CameraBuildRg<cr>
+nnoremap <leader>- :Files<cr>
+nnoremap <leader>s :GenericRg<cr>
+nnoremap <leader>S :CameraBuildRg<cr>
 
 " Git integration
 nnoremap <leader>gg :GGrep<cr>
-nnoremap <leader>gs :Gstatus<cr>
+nnoremap <leader>gs :Git<cr>
 nnoremap <leader>gp :Gpull<cr>
 nnoremap <leader>gP :Gpush<cr>
 nnoremap <leader>gm :Gmerge<cr>
