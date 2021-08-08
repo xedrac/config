@@ -25,6 +25,7 @@
 )
 
 ;; vim emulation
+(setq evil-want-keybinding nil)
 (use-package evil
   :ensure t
   :init

@@ -1,21 +1,55 @@
-;(use-package doom-themes
-; :ensure t
-; :config
-; ;; Global settings (defaults)
-; (setq doom-themes-enable-bold t ; if nil, bold is universally disabled
-;       doom-themes-enable-italic t) ; if nil, italics is universally disabled
-; (load-theme 'doom-horizon t)
-; (doom-themes-visual-bell-config))
+(use-package doom-themes
+  :ensure t
+  :config
+  ;; Global settings (defaults)
+ (setq doom-themes-enable-bold t ; if nil, bold is universally disabled
+      doom-themes-enable-italic t) ; if nil, italics is universally disabled
+;(load-theme 'doom-horizon t)
+;(load-theme 'doom-dracula t)
+;(load-theme 'doom-one t)
+;(load-theme 'doom-vibrant t)
+;(load-theme 'doom-acario-dark t)
+;(load-theme 'doom-Iosvkem)
+;(load-theme 'doom-material)
+;(load-theme 'doom-monokai-classic)
+(load-theme 'doom-monokai-pro)
+;(load-theme 'doom-molokai)
+;(load-theme 'doom-palenight)
+;(load-theme 'doom-snazzy)
+;(load-theme 'doom-solarized-dark)
+;(load-theme 'doom-tomorrow-night)
+;(load-theme 'doom-wilmersdorf)
+(doom-themes-visual-bell-config))
 
 ;(use-package zenburn-theme
 ;  :ensure t
 ;  :config
 ;  (load-theme 'zenburn t))
 
-(use-package molokai-theme
-  :ensure t
-  :config
-  (load-theme 'molokai t))
+;(use-package molokai-theme
+;  :ensure t
+;  :config
+;  (load-theme 'molokai t))
+
+;(use-package atom-one-dark-theme
+;  :ensure t
+;  :config
+;  (load-theme 'atom-one-dark t))
+
+;(use-package spacemacs-dark-theme
+;  :ensure t
+;  :config
+;  (load-theme 'spacemacs-dark t))
+
+;(use-package atom-dark-theme
+;  :ensure t
+;  :config
+;  (load-theme 'atom-dark t))
+
+;(use-package nimbus-theme
+;  :ensure t
+;  :config
+;  (load-theme 'nimbus t))
 
 ;;; Available themes:
 ;; doom-one
@@ -58,11 +92,6 @@
 ;; doom-tomorrow-night
 ;; doom-wilmersdorf
 
-;(use-package atom-one-dark-theme
-;  :ensure t
-;  :config
-;  (load-theme 'atom-one-dark t)
-;)
 
 ;; Add tab bar to show open buffers
 ;(use-package centaur-tabs
@@ -159,7 +188,7 @@
 ;(setq visible-bell nil)              ; don't flash the screen either
 (setq require-final-newline t)       ; add newline to end of file if necessary
 (setq show-trailing-whitespace t)    ; show trailing whitespace
-(setq scroll-margin 1)
+(setq scroll-margin 3)
 (setq scroll-conservatively 9999)
 (setq auto-window-vscroll nil)
 (setq linum-format "%4d" column-number-mode t)  ; Line number format

@@ -7,7 +7,12 @@
   :config
   (setq lsp-enable-snippet nil
    	    lsp-auto-configure t
-	    lsp-auto-guess-root t))
+	    lsp-auto-guess-root t)
+  :hook
+  (rustic-mode . lsp-mode)
+  (c++-mode . lsp-mode)
+  (python-mode . lsp-mode))
+
 
 ;; lsp-ui for flycheck integration
 (use-package lsp-ui

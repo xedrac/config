@@ -2,7 +2,7 @@
 
 # Install some system packages
 sudo dnf update --refresh -y 
-sudo dnf install -y clang bear ripgrep clisp
+sudo dnf install -y clang bear ripgrep fd-find clisp
 
 # Install rustup and rust
 if ! command -v rustup &> /dev/null; then
@@ -19,3 +19,6 @@ rustup component add rust-src
 git clone https://github.com/rust-analyzer/rust-analyzer.git
 cd rust-analyzer
 cargo xtask install --server
+
+# Install python language server
+pip3 install --user wheel pyls python-language-server[all]

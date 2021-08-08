@@ -37,7 +37,7 @@
 
   ;; comment to disable rustfmt on save
   (setq rustic-format-on-save t)
-  ;(add-hook 'rustic-mode-hook 'rk/rustic-mode-hook)
+  (add-to-list 'lsp-language-id-configuration '(rust-mode-hook . "rust"))
   )
 
 

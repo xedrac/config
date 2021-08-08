@@ -2,7 +2,8 @@
   :ensure t
   ;; Add hooks for programming mode
   :hook
-  (prog-mode . rainbow-delimiters-mode))
+  ;(prog-mode . rainbow-delimiters-mode))
+  (lisp-mode . rainbow-delimiters-mode))
 
 (use-package smartparens
   :ensure t
@@ -11,7 +12,9 @@
   (smartparens-global-mode t)
   (setq sp-highlight-pair-overlay nil)
   (setq sp-show-pair-from-inside nil)
-  :diminish smartparens-mode)
+  :diminish smartparens-mode
+  :hook
+  (lisp-mode . smartparens-mode))
 
 ;(use-package move-text
 ;  :ensure t
