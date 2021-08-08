@@ -5,16 +5,16 @@
   ;(prog-mode . rainbow-delimiters-mode))
   (lisp-mode . rainbow-delimiters-mode))
 
-(use-package smartparens
-  :ensure t
-  :config
-  (require 'smartparens-config)
-  (smartparens-global-mode t)
-  (setq sp-highlight-pair-overlay nil)
-  (setq sp-show-pair-from-inside nil)
-  :diminish smartparens-mode
-  :hook
-  (lisp-mode . smartparens-mode))
+;(use-package smartparens
+;  :ensure t
+;  :config
+;  (require 'smartparens-config)
+;  (smartparens-global-mode t)
+;  (setq sp-highlight-pair-overlay nil)
+;  (setq sp-show-pair-from-inside nil)
+;  :diminish smartparens-mode
+;  :hook
+;  (lisp-mode . smartparens-mode))
 
 ;(use-package move-text
 ;  :ensure t

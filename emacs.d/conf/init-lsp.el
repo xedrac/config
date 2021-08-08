@@ -6,8 +6,9 @@
   (lsp-eldoc-render-all t)
   :config
   (setq lsp-enable-snippet nil
-   	    lsp-auto-configure t
-	    lsp-auto-guess-root t)
+        lsp-auto-configure t
+        lsp-auto-guess-root t
+        lsp-headerline-breadcrumb-enable nil)
   :hook
   (rustic-mode . lsp-mode)
   (c++-mode . lsp-mode)
