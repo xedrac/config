@@ -17,7 +17,7 @@
 # Steps to setting up new machine (as of Fedora 36):
 #
 # 1. Install these packages
-#      $> sudo dnf install i3 kitty fira-code-fonts rofi
+#      $> sudo dnf install i3 kitty fira-code-fonts rofi xfce4-power-manager thunar
 #
 # 2. Build and install xcape to allow capslock to act as ESC when pressed alone
 #      $> git clone https://github.com/alols/xcape
@@ -43,9 +43,7 @@
 #      xfce4-polkit:  polkit auth in gtk3
 #      gradience:  libadwaita themer with adw-gtk3 support
 #      kvantum:  themes allow for background transparency and background blur
-#      thunar:  good file manager
 #      gnome calculator, gnome text editor, gnome character map
-#      xfce4-panel
 ##############################################################################
 
 
@@ -74,7 +72,9 @@ exec --no-startup-id dex-autostart --autostart --environment i3
 
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
 # screen before suspend. Use loginctl lock-session to lock your screen.
-exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
+exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock -u -i ~/Pictures/dawn-grass.jpg --nofork
+#exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock -u -i ~/Pictures/electronic-circuit.jpg --nofork
+#exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock -u -i ~/Pictures/electronic-techno.jpg --nofork
 
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
@@ -85,6 +85,9 @@ exec --no-startup-id setxkbmap us -variant dvorak -option ctrl:nocaps
 
 # Make capslock key act as an escape when pressed and released on its own
 exec --no-startup-id xcape -t 170 -f
+
+# Run the xfce4 power manager (no systemd service file it seems)
+exec --no-startup-id /usr/bin/xfce-power-manager
 
 
 # Use Mouse+$mod to drag floating windows to their wanted position
