@@ -1,0 +1,18 @@
+{
+    "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
+    "Lua.workspace.library": [
+        "/nix/store/yk9i138riy4sqb0w9plxpjxjlm47w05h-vim-pack-dir",
+        "/nix/store/yk9i138riy4sqb0w9plxpjxjlm47w05h-vim-pack-dir/pack/myNeovimPackages/start/__python3_dependencies",
+        "/home/sbadger/.config/nvim",
+        "/home/sbadger/.local/share/nvim/site",
+        "/home/sbadger/.local/share/nvim/site/pack/packer/start/nvim-lspconfig",
+        "/home/sbadger/.local/share/nvim/site/pack/packer/start/nvim-treesitter",
+        "/home/sbadger/.local/share/nvim/site/pack/packer/start/onedark.nvim",
+        "/home/sbadger/.local/share/nvim/site/pack/packer/start/packer.nvim",
+        "/nix/store/d9wfkr5ap9zxaqigy0fbhq9akyjy461w-neovim-unwrapped-0.8.1/share/nvim/runtime",
+        "/nix/store/d9wfkr5ap9zxaqigy0fbhq9akyjy461w-neovim-unwrapped-0.8.1/share/nvim/runtime/pack/dist/opt/matchit",
+        "/nix/store/d9wfkr5ap9zxaqigy0fbhq9akyjy461w-neovim-unwrapped-0.8.1/lib/nvim",
+        "/home/sbadger/.config/nvim/after",
+        "${3rd}/luassert/library"
+    ]
+}
