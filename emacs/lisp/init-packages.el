@@ -4,7 +4,7 @@
 (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pyright" "--stdio")))
 (add-to-list 'eglot-server-programs '((c-mode c++-mode c-ts-mode c++-ts-mode) . ("clangd" "--background-index")))
 ;(add-to-list 'eglot-server-programs '((c-mode c++-mode c-ts-mode c++-ts-mode) . ("clangd" "--compile-commands-dir=\"build\")))
-(add-to-list 'eglot-server-programs '((haskell-mode haskell-ts-mode) . ("haskell-language-server-wrapper")))
+(add-to-list 'eglot-server-programs '((haskell-mode haskell-ts-mode) . ("haskell-language-server-wrapper" "--lsp")))
 ;(add-to-list 'eglot-server-programs '((js-mode typescript-mode ts-mode) . ("typescript-language-server" "--stdio")))
 ;(add-to-list 'eglot-server-programs '((java-mode java-ts-mode) . ("jdtls")))
 ;(add-to-list 'eglot-server-programs '((go-mode) . ("gopls")))
@@ -169,8 +169,9 @@
 
 (use-package nerd-icons
   :ensure t)
-;  :init
-;  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+  ;:init
+  ;(add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
+
 
 (use-package nerd-icons-completion
   :ensure t
@@ -342,6 +343,9 @@
 
 (use-package magit
   :ensure (:host github :repo "magit/magit"))
+
+(use-package haskell-mode
+  :ensure t)
 
 ;;; Remove trailing whitespace on lines you've edited
 ;(use-package ws-butler
