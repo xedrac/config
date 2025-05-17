@@ -72,9 +72,8 @@
         read-file-name-completion-ignore-case t  ; ignore case when searching filenames
         read-buffer-completion-ignore-case t     ; ignore case when grepping buffers
         completion-ignore-case t)                ; ignore case on completions
+  (setq consult-fd-args "fd --color=never --type f --hidden --exclude \\#*\\#")  ; Don't show temp files in search find results
   :config
-  (setq consult-fd-args
-      "fd --color=never --type f --hidden --exclude '#*#'")  ; Don't show temp files in search find results
   (consult-customize
     consult-theme :preview-key '(:debounce 0.2 any)
     consult-ripgrep consult-git-grep consult-grep
@@ -139,6 +138,7 @@
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   :hook ((prog-mode shell-mode eshell-mode) . corfu-mode))
 
+;;; Much nicer icons for corfu completions
 (use-package kind-icon
   :ensure t
   :after corfu
