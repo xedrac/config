@@ -49,7 +49,7 @@
 (setq display-line-numbers-type 'relative)
 ;(blink-cursor-mode t)
 ;(set-cursor-color "#cccccc")
-(setq font-lock-maximum-decoration 2)
+(setq font-lock-maximum-decoration 3)   ; for languages that don't use treesitter, make them colorful (e.g. Racket)
 
 
 ;;; Offload the custom-set-variables to a separate file
@@ -116,7 +116,8 @@
 ;(set-frame-font "Liberation Mono-14" nil t)
 ;(set-frame-font "Source Code Pro-14" nil t)
 ;(set-frame-font "FiraCode NF-14" nil t)
-(set-frame-font "FiraCode Nerd Font Mono" nil t)
+;(set-frame-font "FiraCode Nerd Font Mono" nil t)
 ;(set-frame-font "FiraCode Nerd Font Mono Light-14" nil t)
+(set-frame-font "Inconsolata Nerd Font-15" nil t)
 
 (provide 'init-core)

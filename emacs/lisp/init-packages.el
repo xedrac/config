@@ -12,27 +12,6 @@
 (add-hook 'prog-mode-hook 'eglot-ensure)
 
 
-;(use-package eglot
-;  :ensure t
-;  :init
-;  (add-to-list 'eglot-server-programs '((rust-mode rust-ts-mode) . ("rust-analyzer")))
-;  (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pyright" "--stdio")))
-;  (add-to-list 'eglot-server-programs '((c-mode c++-mode c-ts-mode c++-ts-mode) . ("clangd" "--background-index")))
-;  ;(add-to-list 'eglot-server-programs '((c-mode c++-mode c-ts-mode c++-ts-mode) . ("clangd" "--compile-commands-dir=\"build\")))
-;  (add-to-list 'eglot-server-programs '((haskell-mode haskell-ts-mode) . ("haskell-language-server-wrapper")))
-
-;;; Start eglot/lsp automatically when entering these programming modes
-;(add-hook 'c-mode-hook 'eglot-ensure)
-;(add-hook 'c-ts-mode-hook 'eglot-ensure)
-;(add-hook 'c++-mode-hook 'eglot-ensure)
-;(add-hook 'c++-ts-mode-hook 'eglot-ensure)
-;(add-hook 'c-mode-hook 'eglot-ensure)    ; Requires clangd to be installed already
-;(add-hook 'c++-ts-mode-hook 'eglot-ensure)  ; Same as ^^^
-;(add-hook 'haskell-mode-hook 'eglot-ensure)
-;(add-hook 'haskell-ts-mode-hook 'eglot-ensure)
-;(add-hook 'rust-mode 'eglot-ensure)
-;(add-hook 'rust-ts-mode 'eglot-ensure)
-
 ;;; Convenient keybinding support for evil
 (use-package general
   :ensure t)
@@ -94,6 +73,8 @@
         read-buffer-completion-ignore-case t     ; ignore case when grepping buffers
         completion-ignore-case t)                ; ignore case on completions
   :config
+  (setq consult-fd-args
+      "fd --color=never --type f --hidden --exclude '#*#'")  ; Don't show temp files in search find results
   (consult-customize
     consult-theme :preview-key '(:debounce 0.2 any)
     consult-ripgrep consult-git-grep consult-grep
@@ -144,49 +125,52 @@
   (global-treesit-auto-mode))
 
 ;;; Inline UI popup for completions (instead of just in the minibuffer)
-;(use-package corfu
-;  :ensure t
-;  :init
-;  (global-corfu-mode)
-;  :custom
-;  (setq eglot-stay-out-of '(completion-at-point))
-;  (corfu-auto t)                 ;; Enable auto completion
-;  (corfu-auto-delay 0.1)        ;; 0 is not recommended
-;  (corfu-auto-prefix 1)         ;; 1 is not recommended
-;  ;(corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
-;  ;(corfu-separator ?\s)         ;; Orderless field separator
-;  ;;(corfu-quit-at-boundary nil) ;; Never quit at completion boundary
-;  ;(corfu-quit-no-match 'separator)      ;; Never quit, even if there is no match
-;  ;;(corfu-preview-current nil)    ;; Disable current candidate preview
-;  ;;(corfu-preselect 'prompt)      ;; Preselect the prompt
-;  ;;(corfu-on-exact-match nil)     ;; Configure handling of exact matches
-;  ;;(corfu-scroll-margin 5)        ;; Use scroll margin
-;  ;; Enable Corfu only for certain modes.
-;  :hook ((prog-mode shell-mode eshell-mode) . corfu-mode))
-
-(use-package company
+(use-package corfu
   :ensure t
   :init
-  (global-company-mode)
+  (global-corfu-mode)
+  (corfu-popupinfo-mode)
+  (corfu-history-mode)
   :custom
-  (company-idle-delay 0.0) ;; Delay before showing completions (adjust as needed)
-  (company-minimum-prefix-length 1) ;; Trigger completions after 1 character
-  (company-tooltip-align-annotations t) ;; Align annotations (e.g., function signatures)
-  :config
-  (add-to-list 'company-backends 'company-capf))
+  (setq eglot-stay-out-of '(completion-at-point))
+  (corfu-auto t)                ;; Enable auto completion
+  (corfu-auto-delay 0.2)        ;; seconds before completion popup is shown
+  (corfu-auto-prefix 1)         ;; num chars required to show completions
+  (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  :hook ((prog-mode shell-mode eshell-mode) . corfu-mode))
 
-(use-package company-box
+(use-package kind-icon
   :ensure t
-  :hook (company-mode . company-box-mode))
+  :after corfu
+  ;:custom
+  ; (kind-icon-blend-background t)
+  ; (kind-icon-default-face 'corfu-default) ; only needed with blend-background
+  :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+
+;;; Company is sluggish...  use corfu instead
+;(use-package company
+;  :ensure t
+;  :init
+;  (global-company-mode)
+;  :custom
+;  (company-idle-delay 0.0) ;; Delay before showing completions (adjust as needed)
+;  (company-minimum-prefix-length 1) ;; Trigger completions after 1 character
+;  (company-tooltip-align-annotations t) ;; Align annotations (e.g., function signatures)
+;  :config
+;  (add-to-list 'company-backends 'company-capf))
+;
+;(use-package company-box
+;  :ensure t
+;  :hook (company-mode . company-box-mode))
 
 (require 'which-key)
 (which-key-mode)
 
 (use-package nerd-icons
-  :ensure t
-  :after corfu
-  :init
-  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+  :ensure t)
+;  :init
+;  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
 (use-package nerd-icons-completion
   :ensure t
@@ -234,11 +218,19 @@
 
 (use-package racket-mode
   :ensure t
-  :init
-  (setq racket-completion-min-chars 1)
-  :hook (racket-mode . (lambda () (define-key racket-mod-map (kbd "<F5>") 'racket-run)))
-        (racket-mode . company-mode))
+  :hook (racket-mode . (lambda ()
+                         (racket-xp-mode)
+                         (font-lock-mode)))
+  :bind (:map racket-mode-map
+              ("<f5>" . racket-run))
+  :config
+  ;(setq racket-completion-min-chars 1)
+  ;(setq racket-xp-completion-min-chars 1)
+  (setq tab-always-indent 'complete))
 
+(use-package rainbow-delimiters
+  :ensure t
+  :hook ((racket-mode lisp-mode) . rainbow-delimiters-mode))
 
 (use-package clojure-mode
   :ensure t)
@@ -259,13 +251,20 @@
   :ensure t)
 
 (use-package atom-one-dark-theme
-  :ensure (:host github :repo "jonathanchu/atom-one-dark-theme")
+  ;:ensure (:host github :repo "jonathanchu/atom-one-dark-theme")
+  :ensure (:host github :repo "xedrac/atom-one-dark-theme")
   :init
   (set-face-background 'line-number "#212124")
   (set-face-background 'line-number-current-line "#232326")
-  (set-face-background 'default "#232326")
+  ;(set-face-background 'default "#232326")
   :config
   (load-theme 'atom-one-dark t))
+
+;(use-package vscode-dark-plus-theme
+;  :ensure t
+;  :config
+;  (load-theme 'vscode-dark-plus t))
+
 
 ;(use-package doom-themes
 ;  :ensure t)
@@ -292,14 +291,20 @@
 
 (use-package neotree
   :ensure t
-  ;:hook (neo-after-create . (lambda (&optional dummy)
-  ;                            (set-face-background 'default "#232326" (current-buffer))))
   :config
   (setq neo-window-width 40)
+  (setq neo-autorefresh t)
+  (setq neo-window-fixed-size -1)
+  ;(setq neo-auto-indent-point t)
+  ;(setq neo-vc-integration t)
   (setq neo-theme (if (display-graphic-p) 'nerd-icons 'arrow)))
+  ;(setq neo-theme (if (display-graphic-p) 'icons 'arrow)))
 
-(use-package all-the-icons
-  :ensure t)
+; Make the nerd icons smaller in the neotree buffer
+;(add-hook 'neo-after-create-hook
+;          (lambda (&rest _)
+;            (with-current-buffer (neo-global--get-buffer)
+;              (setq-local nerd-icons-scale-factor 0.7))))
 
 
 ;(use-package treemacs
