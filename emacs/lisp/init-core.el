@@ -114,10 +114,10 @@
 ;(set-frame-font "Monospace-14" nil t)
 ;(set-frame-font "DejaVu Sans Mono-14" nil t)
 ;(set-frame-font "Liberation Mono-14" nil t)
-;(set-frame-font "Source Code Pro-14" nil t)
+;(set-frame-font "Source Code Pro" nil t)
 ;(set-frame-font "FiraCode NF-14" nil t)
 ;(set-frame-font "FiraCode Nerd Font Mono" nil t)
 ;(set-frame-font "FiraCode Nerd Font Mono Light-14" nil t)
-(set-frame-font "Inconsolata Nerd Font-15" nil t)
+(set-frame-font "Inconsolata Nerd Font Mono-18" nil t)
 
 (provide 'init-core)

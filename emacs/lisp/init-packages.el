@@ -302,10 +302,10 @@
   ;(setq neo-theme (if (display-graphic-p) 'icons 'arrow)))
 
 ; Make the nerd icons smaller in the neotree buffer
-;(add-hook 'neo-after-create-hook
-;          (lambda (&rest _)
-;            (with-current-buffer (neo-global--get-buffer)
-;              (setq-local nerd-icons-scale-factor 0.7))))
+(add-hook 'neo-after-create-hook
+          (lambda (&rest _)
+            (with-current-buffer (neo-global--get-buffer)
+              (setq-local nerd-icons-scale-factor 1.0))))
 
 
 ;(use-package treemacs

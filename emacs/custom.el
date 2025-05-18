@@ -14,9 +14,13 @@
  '(default ((t (:inherit nil :extend nil :stipple nil :background "#232326" :foreground "#ABB2BF" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight regular :height 113 :width normal :foundry "CTDB" :family "FiraCode Nerd Font Mono"))))
 
  ;'(neo-dir-link-face ((t (:foreground "SteelBlue1" :family "Liberation Mono" :height 90))))
- '(neo-dir-link-face ((t (:foreground "SteelBlue1"  :width narrow :family "Inconsolata Nerd Font" :height 140))))
- '(neo-file-link-face ((t (:foreground "light gray" :width narrow :family "Inconsolata Nerd Font" :height 140))))
- '(neo-root-dir-face ((t (:foreground "sandy brown" :weight bold :family "Inconsolata Nerd Font" :height 140))))
+
+ ;'(neo-dir-link-face ((t (:foreground "SteelBlue1"  :width narrow :family "Inconsolata Nerd Font" :height 140))))
+ ;'(neo-file-link-face ((t (:foreground "light gray" :width narrow :family "Inconsolata Nerd Font" :height 140))))
+ ;'(neo-root-dir-face ((t (:foreground "sandy brown" :weight bold :family "Inconsolata Nerd Font" :height 140))))
+ '(neo-dir-link-face ((t (:foreground "SteelBlue1"  :width narrow :family "Source Code Pro" :height 140))))
+ '(neo-file-link-face ((t (:foreground "light gray" :width narrow :family "Source Code Pro" :height 140))))
+ '(neo-root-dir-face ((t (:foreground "sandy brown" :weight bold :family "Source Code Pro" :height 140))))
 
  '(telephone-line-evil-insert ((t (:inherit telephone-line-evil :background "#61afef" :foreground "#000000"))))
  '(telephone-line-evil-normal ((t (:inherit telephone-line-evil :background "#98c379" :foreground "#000000"))))
