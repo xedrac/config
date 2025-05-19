@@ -1,5 +1,10 @@
 ;; -*- lexical-binding: t; -*-
 
+;;; Convenient keybinding support for evil
+(use-package general
+  :ensure t)
+(elpaca-wait)
+
 ;;; vim emulation
 (use-package evil
   :ensure t
@@ -19,11 +24,11 @@
   (setq evil-replace-state-cursor '("red" bar))
   (setq evil-operator-state-cursor '("red" hollow))
 
-(general-define-key
-  :states 'motion
-  ";" 'evil-ex
-  ;; ":" 'evil-repeat-find-char
-  ))
+ (general-define-key
+   :states 'motion
+   ";" 'evil-ex))
+   ;; ":" 'evil-repeat-find-char
+
 
 ;;; evil keybindings for other parts of emacs
 (use-package evil-collection
