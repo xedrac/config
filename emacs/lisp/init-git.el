@@ -5,3 +5,5 @@
 (use-package magit
   :ensure (:host github :repo "magit/magit"))
 
+
+(provide 'init-git)

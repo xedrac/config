@@ -1,4 +1,4 @@
-(require 'elglot)
+(require 'eglot)
 
 (add-to-list 'eglot-server-programs '((rust-mode rust-ts-mode) . ("rust-analyzer")))
 (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pyright" "--stdio")))
