@@ -10,15 +10,13 @@
 (setq ring-bell-function 'ignore)         ; Disable bell sound
 (fset 'yes-or-no-p 'y-or-n-p)             ; y-or-n-p makes answering questions faster
 (show-paren-mode 1)                       ; Show closing parens by default
-(global-auto-revert-mode t)               ; Auto update buffers whose files are changed outside emacs
+(global-auto-revert-mode 1)               ; Auto update buffers whose files are changed outside emacs
 
 (setq display-line-numbers-width-start t)
 (setq display-line-numbers-current-absolute -1)
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (add-hook 'text-mode-hook 'display-line-numbers-mode)
 (add-hook 'conf-mode-hook 'display-line-numbers-mode)
-
-(global-auto-revert-mode)                 ; Automatically update buffer if file changes outside emacs
 
 (when (fboundp 'menu-bar-mode) (menu-bar-mode -1))  ; remove some gui elements
 (when (fboundp 'tool-bar-mode) (tool-bar-mode -1))

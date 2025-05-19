@@ -1,140 +1,150 @@
 ;;; keybindings.el
 
 ;;; Custom leader key
-(general-create-definer leader-define-key
-  :prefix "SPC"
-  :non-normal-prefix "M-SPC")
+;(general-create-definer leader-define-key
+;  :prefix "SPC"
+;  :non-normal-prefix "M-SPC"
+;
+;;; Custom leader keybindings
+;(leader-define-key
+;  :init (general-def :states '(normal visual motion) "SPC" nil)  ; unbind SPC so we can use it as prefix
+;  :states '(normal visual motion)
 
-;; Custom leader keybindings
-(leader-define-key
-  :init (general-def :states '(normal visual motion) "SPC" nil)  ; unbind SPC so we can use it as prefix
-  :states '(normal visual motion)
+;(evil-set-leader 'normal (kbd "SPC"))
 
-  ; misc
-  ;"SPC" 'execute-extended-command
-  "."   'project-or-external-find-file
-  ;"'"   '(lambda () (interactive) (term "/bin/bash"))
-  "'"   'term ;'project-eshell
-  "?"   'general-describe-keybindings
-  "`"   '(lambda () (interactive) (dired (expand-file-name "lisp/" user-emacs-directory)))
-  ;"`"   '(lambda () (interactive) (find-file (expand-file-name "lisp/init-keybindings.el" user-emacs-directory)))
-  "~"   '(lambda () (interactive) (find-file (expand-file-name "lisp/init-packages.el" user-emacs-directory)))
-  "R"   '(lambda() (interactive) (load-file user-init-file))
-  "e b" 'eval-buffer
-  "e s" 'eval-last-sexp
-  "e e" 'eval-expression
-  "e f" 'eval-defun
-  "+"   'text-scale-increase
-  "_"   'text-scale-decrease
-  "c"   'comment-line
-  "C"   'comment-region
-  "0"   '(lambda () (interactive) (serial-term "/dev/ttyUSB0" 115200))
-  "1"   '(lambda () (interactive) (serial-term "/dev/ttyUSB1" 115200))
-  "2"   '(lambda () (interactive) (serial-term "/dev/ttyUSB2" 115200))
+(with-eval-after-load 'evil
+  (evil-define-key '(normal motion visual) 'global
+    "/" 'consult-line
+    ";" 'evil-ex
+    ":" 'evil-repeat-find-char)
 
-  ; files
-  "-" 'consult-locate
-  ;"o u" 'project-find-file ;'consult-fd
-  "o u" 'consult-fd
-  "o i" 'consult-ripgrep
-  "o g" 'consult-git-grep
-  "o e" 'consult-buffer
+  (evil-define-key 'normal 'global
+    ; misc
+    ;"SPC" 'execute-extended-command
+    (kbd "<leader>.")   'project-find-file
+    ;(kbd "<leader>'")   '(lambda () (interactive) (term "/bin/bash"))
+    ;(kbd "<leader>?")   'general-describe-keybindings
+    (kbd "<leader>`")   '(lambda () (interactive) (dired user-emacs-directory))
+    (kbd "<leader>R")   '(lambda() (interactive) (load-file user-init-file))
+    (kbd "<leader>eb")  'eval-buffer
+    (kbd "<leader>es")  'eval-last-sexp
+    (kbd "<leader>ee")  'eval-expression
+    (kbd "<leader>ef")  'eval-defun
+    (kbd "<leader>+")   'text-scale-increase
+    (kbd "<leader>_")   'text-scale-decrease
+    (kbd "<leader>c")   'comment-line
+    (kbd "<leader>C")   'comment-region
+    ;(kbd "<leader>0")   '(lambda () (interactive) (serial-term "/dev/ttyUSB0" 115200))
+    ;(kbd "<leader>1")   '(lambda () (interactive) (serial-term "/dev/ttyUSB1" 115200))
+    ;(kbd "<leader>2")   '(lambda () (interactive) (serial-term "/dev/ttyUSB2" 115200))
 
-  ; buffers
-  "b a" 'consult-buffer
-  "b b" 'consult-project-buffer
-  "b l" 'list-buffers
-  "b N" 'evil-buffer-new
-  "b d" '((lambda () (interactive) (kill-buffer (current-buffer))))  ; this works more reliably than 'kill-this-buffer
-  "b q" '((lambda () (interactive) (kill-buffer (current-buffer))))
-  "b n" 'evil-next-buffer
-  "b p" 'evil-prev-buffer
-  "b s" 'save-buffer
-  "b S" '((lambda () (interactive) (save-some-buffers t))) ; :which-key "save all")
-  "b H" 'buf-move-left
-  "b L" 'buf-move-right
-  "b J" 'buf-move-down
-  "b K" 'buf-move-up
-  "b C" 'my-write-copy-to-file
+    ; file s
+    (kbd "<leader>-") 'consult-locate
+    ;(kbd "<leader>ou" 'project-find-file ;'consult-fd
+    (kbd "<leader>of") 'find-file
+    (kbd "<leader>ou") 'consult-fd
+    (kbd "<leader>oi") 'consult-ripgrep
+    (kbd "<leader>og") 'consult-git-grep
+    (kbd "<leader>oe") 'consult-buffer
 
-  ; windows
-  "w d" 'delete-window
-  "w q" 'delete-window
-  "w v" 'evil-window-vsplit
-  "w s" 'evil-window-split
-  "w n" 'evil-window-next
-  "w p" 'evil-window-prev
-  "w >" '(lambda () (interactive) (evil-window-increase-width 10))
-  "w <" '(lambda () (interactive) (evil-window-decrease-width 10))
-  "w +" '(lambda () (interactive) (evil-window-increase-height 10))
-  "w -" '(lambda () (interactive) (evil-window-decrease-height 10))
+    ; buffers
+    (kbd "<leader>ba") 'consult-buffer
+    (kbd "<leader>bb") 'consult-project-buffer
+    (kbd "<leader>bl") 'list-buffers
+    (kbd "<leader>bN") 'evil-buffer-new
+    (kbd "<leader>bd") '((lambda () (interactive) (kill-buffer (current-buffer))))  ; this works more reliably than 'kill-this-buffer
+    (kbd "<leader>bq") '((lambda () (interactive) (kill-buffer (current-buffer))))
+    (kbd "<leader>bn") 'evil-next-buffer
+    (kbd "<leader>bp") 'evil-prev-buffer
+    (kbd "<leader>bs") 'save-buffer
+    (kbd "<leader>bS") '((lambda () (interactive) (save-some-buffers t))) ; :which-key "save all")
+    (kbd "<leader>bH") 'buf-move-left
+    (kbd "<leader>bL") 'buf-move-right
+    (kbd "<leader>bJ") 'buf-move-down
+    (kbd "<leader>bK") 'buf-move-up
+    (kbd "<leader>bC") 'my-write-copy-to-file
 
-  ; project
-  ;"p f" 'counsel-projectile-find-file
-  ;"p d" 'counsel-projectile-find-dir
-  ;"p g" 'counsel-projectile-grep
-  ;"p a" 'counsel-projectile-ag
-  ;"p r" 'counsel-projectile-rg
-  ;"p s" '(lambda () (interactive) (counsel-projectile-ag "-s"))
-  ;"p b" 'counsel-projectile-switch-to-buffer
-  "p" 'project-switch-project ;'counsel-projectile-switch-project
+    ; windows
+    (kbd "<leader>wd") 'delete-window
+    (kbd "<leader>wq") 'delete-window
+    (kbd "<leader>wv") 'evil-window-vsplit
+    (kbd "<leader>ws") 'evil-window-split
+    (kbd "<leader>wn") 'evil-window-next
+    (kbd "<leader>wp") 'evil-window-prev
+    (kbd "<leader>w>") '(lambda () (interactive) (evil-window-increase-width 10))
+    (kbd "<leader>w<") '(lambda () (interactive) (evil-window-decrease-width 10))
+    (kbd "<leader>w+") '(lambda () (interactive) (evil-window-increase-height 10))
+    (kbd "<leader>w-") '(lambda () (interactive) (evil-window-decrease-height 10))
 
-  ; toggles
-  "t s" 'neotree-toggle
-  ;"t s" 'treemacs
-  "t w" 'whitespace-mode
+    ; project
+    ;(kbd "<leader>pf") 'counsel-projectile-find-file
+    ;(kbd "<leader>pd") 'counsel-projectile-find-dir
+    ;(kbd "<leader>pg") 'counsel-projectile-grep
+    ;(kbd "<leader>pa") 'counsel-projectile-ag
+    ;(kbd "<leader>pr") 'counsel-projectile-rg
+    ;(kbd "<leader>ps") '(lambda () (interactive) (counsel-projectile-ag "-s"))
+    ;(kbd "<leader>pb") 'counsel-projectile-switch-to-buffer
+    (kbd "<leader>p") 'project-switch-project ;'counsel-projectile-switch-project
 
-  ; help
-  "h p" 'describe-point
-  "h f" 'describe-function ;'counsel-describe-function
-  "h v" 'describe-variable ;'counsel-describe-variable
-  "h k" 'describe-key
+    ; toggles
+    ;"<leader>ts" 'neotree-toggle
+    (kbd "<leader>ts") 'treemacs
+    (kbd "<leader>tw") 'whitespace-mode
 
-  ;; lsp symbol stuff
-  "s ," 'xref-find-definitions
-  "s ." 'xref-find-definitions-other-window
-  "s o" 'xref-go-back
-  "s r" 'xref-find-references
-  "s c" 'xref-find-references-and-replace)
-  ;"s p" 'lsp-ui-peek-find-definitions
-  ;"s '" 'lsp-ui-peek-find-references
-  ;"s ," 'lsp-ui-peek--goto-xref-other-window
-  ;;"s ," 'lsp-ui-peek--goto-xref
-  ;"s r" 'lsp-rename
+    ; help
+    (kbd "<leader>hp") 'describe-point
+    (kbd "<leader>hf") 'describe-function ;'counsel-describe-function
+    (kbd "<leader>hv") 'describe-variable ;'counsel-describe-variable
+    (kbd "<leader>hk") 'describe-key
 
-  ;; chat/irc/slack
-  ;"i f" '((lambda () (interactive) (irc-freenode-connect)) :which-key "Freenode")
-  ;"i b" '((lambda () (interactive) (erc-switch-to-buffer)) :which-key "ERC switch buffer")
+    ;; lsp symbol stuff
+    (kbd "<leader>s,") 'xref-find-definitions
+    (kbd "<leader>s.") 'xref-find-definitions-other-window
+    (kbd "<leader>so") 'xref-go-back
+    (kbd "<leader>sr") 'xref-find-references
+    (kbd "<leader>sc") 'xref-find-references-and-replace))
+    ;(kbd "<leader>sp") 'lsp-ui-peek-find-definitions
+    ;(kbd "<leader>s'") 'lsp-ui-peek-find-references
+    ;(kbd "<leader>s,") 'lsp-ui-peek--goto-xref-other-window
+    ;;(kbd "<leader>s,") 'lsp-ui-peek--goto-xref
+    ;(kbd "<leader>sr") 'lsp-rename
 
-  ; racket
-  ;"r R" 'racket-run
-  ;"r r" 'racket-run-and-switch-to-repl
-  ;"r p" 'racket-repl
-  ;"r e" 'racket-repl-switch-to-edit
-  ;"r d" 'racket-doc
+    ;; chat/irc/slack
+    ;"(kbd <leader>if") '((lambda () (interactive) (irc-freenode-connect)) :which-key "Freenode")
+    ;"(kbd <leader>ib") '((lambda () (interactive) (erc-switch-to-buffer)) :which-key "ERC switch buffer")
 
-  ; rust
-  ;; "r D" '((lambda () (interactive)
-      ;; (let ((rustdir "~/projects/rust/"))
-        ;; (progn (cd rustdir)
-         ;; (setq default-directory rustdir))))
-    ;; :which-key "cd ~/projects/rust")
-  ;; "r n" 'cargo-process-new
-  ;; "r r" 'cargo-process-run
-  ;; "r d" 'cargo-process-doc
-  ;; "r t" 'cargo-process-test
-  ;; "r f" 'cargo-process-format
-  ;; "r c" 'cargo-process-clean
-  ;; "r b" 'cargo-process-build
+    ; racket
+    ;"(kbd <leader>rR") 'racket-run
+    ;"(kbd <leader>rr") 'racket-run-and-switch-to-repl
+    ;"(kbd <leader>rp") 'racket-repl
+    ;"(kbd <leader>re") 'racket-repl-switch-to-edit
+    ;"(kbd <leader>rd") 'racket-doc
 
-;  ; magit
-;  "m d" 'magit-diff-unstaged
-;  "m D" 'magit-diff-buffer-file
-;  "m g" 'magit-diff-staged
-;  "m l" 'magit-log-all
-;  "m s" 'magit-status
-;  "m c" 'magit-branch-checkout
-;  "m b" 'magit-blame
+    ; rust
+    ;; (kbd "<leader>rD") '((lambda () (interactive)
+        ;; (let ((rustdir "~/projects/rust/"))
+          ;; (progn (cd rustdir)
+           ;; (setq default-directory rustdir))))
+      ;; :which-key "cd ~/projects/rust")
+    ;; (kbd "<leader>rn") 'cargo-process-new
+    ;; (kbd "<leader>rr") 'cargo-process-run
+    ;; (kbd "<leader>rd") 'cargo-process-doc
+    ;; (kbd "<leader>rt") 'cargo-process-test
+    ;; (kbd "<leader>rf") 'cargo-process-format
+    ;; (kbd "<leader>rc") 'cargo-process-clean
+    ;; (kbd "<leader>rb") 'cargo-process-build
+
+    ;  ; magit
+    ;  (kbd "<leader>md") 'magit-diff-unstaged
+    ;  (kbd "<leader>mD") 'magit-diff-buffer-file
+    ;  (kbd "<leader>mg") 'magit-diff-staged
+    ;  (kbd "<leader>ml") 'magit-log-all
+    ;  (kbd "<leader>ms") 'magit-status
+    ;  (kbd "<leader>mc") 'magit-branch-checkout
+    ;  (kbd "<leader>mb") 'magit-blame
+
+
+
 
 
   ; TODO debugging
@@ -142,17 +152,17 @@
   ; TODO org mode?
 
 ;; Normal keybindings
-(general-define-key
-  :states '(normal visual motion)
-  "/" 'consult-line)
-  ;"/" 'swiper)
+;(general-define-key
+;  :states '(normal visual motion)
+;  "/" 'consult-line)
+;  ;"/" 'swiper)
 
 
 ;;; Swap ; and : for convenience
-(general-define-key
-  :states 'normal
-  ";" 'evil-ex
-  ":" 'evil-repeat-find-char)
+;(general-define-key
+;  :states 'normal
+;  ";" 'evil-ex
+;  ":" 'evil-repeat-find-char)
 
 ;;; Rename the which-key prefixes
 ;(which-key-add-key-based-replacements
@@ -177,15 +187,15 @@
 ;(general-define-key "C->" 'indent-rigidly-right-to-tab-stop)
 ;(general-define-key "C-<" 'indent-rigidly-left-to-tab-stop)
 
-(general-define-key
-  :states '(motion normal)
-  ;">" 'indent-rigidly-right-to-tab-stop)
-  ">" 'indent-rigidly-right)
-
-(general-define-key
-  :states '(motion normal)
-  ;"<" 'indent-rigidly-left-to-tab-stop)
-  "<" 'indent-rigidly-left)
+;(general-define-key
+;  :states '(motion normal)
+;  ;">" 'indent-rigidly-right-to-tab-stop)
+;  ">" 'indent-rigidly-right)
+;
+;(general-define-key
+;  :states '(motion normal)
+;  ;"<" 'indent-rigidly-left-to-tab-stop)
+;  "<" 'indent-rigidly-left)
 
 
 ;; Rapid key sequences for insert mode
@@ -197,12 +207,6 @@
 ;  (key-seq-define evil-insert-state-map "qs" #'save-buffer)
 ;  (key-seq-define evil-insert-state-map "hc" #'evil-escape))
 
-
-;; Center active search highlight
-(advice-add 'evil-search-next :after
-  (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
-(advice-add 'evil-search-previous :after
-  (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
 
 ;; Allow M-x in serial term
 (eval-after-load 'term
