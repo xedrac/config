@@ -23,6 +23,7 @@
   :config
   (setq treemacs-filewatch-mode t
         treemacs-follow-mode t
+        treemacs-tab-bar t
         ;treemacs-add-and-display-current-directory t
         ;treemacs-display-current-directory-exclusively t
         treemacs-display-current-project-exclusively t
@@ -40,12 +41,17 @@
         treemacs-find-workspace-method 'find-for-file-or-pick-first
         treemacs-collapse-dirs 3
         treemacs-project-follow-cleanup t
+        treemacs-git-commit-diff-mode t
         treemacs-git-mode 'simple)
-  (treemacs-resize-icons 18)
-  :hook (treemacs-mode . (lambda () (set-face-background 'treemacs-window-background-face "#232326"))))
+  (treemacs-resize-icons 18))
+  ;:hook (treemacs-mode . (lambda () (set-face-background 'treemacs-window-background-face "#232326"))))
 
 (use-package treemacs-evil
   :after treemacs
+  :ensure t)
+
+(use-package treemacs-magit
+  :after '(treemacs magit)
   :ensure t)
 
 (provide 'init-filetree)

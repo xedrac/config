@@ -12,6 +12,9 @@
 (show-paren-mode 1)                       ; Show closing parens by default
 (global-auto-revert-mode 1)               ; Auto update buffers whose files are changed outside emacs
 
+(tab-bar-mode 1)
+
+;;; Line numbers
 (setq display-line-numbers-width-start t)
 (setq display-line-numbers-current-absolute -1)
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)

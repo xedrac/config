@@ -1,4 +1,4 @@
-;;; keybindings.el
+;treemacs-filewatch-mode;; keybindings.el
 
 ;;; Custom leader key
 ;(general-create-definer leader-define-key
@@ -10,9 +10,9 @@
 ;  :init (general-def :states '(normal visual motion) "SPC" nil)  ; unbind SPC so we can use it as prefix
 ;  :states '(normal visual motion)
 
-;(evil-set-leader 'normal (kbd "SPC"))
 
 (with-eval-after-load 'evil
+  (evil-set-leader 'normal (kbd "SPC"))
   (evil-define-key '(normal motion visual) 'global
     "/" 'consult-line
     ";" 'evil-ex
@@ -65,19 +65,19 @@
     (kbd "<leader>bK") 'buf-move-up
     (kbd "<leader>bC") 'my-write-copy-to-file
 
-    ; windows
-    (kbd "<leader>wd") 'delete-window
-    (kbd "<leader>wq") 'delete-window
+    ; windows (prefix: w)
     (kbd "<leader>wv") 'evil-window-vsplit
     (kbd "<leader>ws") 'evil-window-split
     (kbd "<leader>wn") 'evil-window-next
     (kbd "<leader>wp") 'evil-window-prev
+    (kbd "<leader>wq") 'delete-window
     (kbd "<leader>w>") '(lambda () (interactive) (evil-window-increase-width 10))
     (kbd "<leader>w<") '(lambda () (interactive) (evil-window-decrease-width 10))
     (kbd "<leader>w+") '(lambda () (interactive) (evil-window-increase-height 10))
     (kbd "<leader>w-") '(lambda () (interactive) (evil-window-decrease-height 10))
 
     ; project
+    (kbd "<leader>p") 'project-switch-project ;'counsel-projectile-switch-project
     ;(kbd "<leader>pf") 'counsel-projectile-find-file
     ;(kbd "<leader>pd") 'counsel-projectile-find-dir
     ;(kbd "<leader>pg") 'counsel-projectile-grep
@@ -85,7 +85,6 @@
     ;(kbd "<leader>pr") 'counsel-projectile-rg
     ;(kbd "<leader>ps") '(lambda () (interactive) (counsel-projectile-ag "-s"))
     ;(kbd "<leader>pb") 'counsel-projectile-switch-to-buffer
-    (kbd "<leader>p") 'project-switch-project ;'counsel-projectile-switch-project
 
     ; toggles
     ;"<leader>ts" 'neotree-toggle

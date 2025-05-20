@@ -2,10 +2,10 @@
 (use-package atom-one-dark-theme
   ;:ensure (:host github :repo "jonathanchu/atom-one-dark-theme")
   :ensure (:host github :repo "xedrac/atom-one-dark-theme")
-  :init
-  (set-face-background 'line-number "#232326")
-  (set-face-background 'line-number-current-line "#232326")
-  (set-face-background 'default "#232326")
+  ;:init
+  ;(set-face-background 'line-number "#232326")
+  ;(set-face-background 'line-number-current-line "#232326")
+  ;(set-face-background 'default "#232326")
   :config
   (load-theme 'atom-one-dark t))
 
