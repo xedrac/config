@@ -22,6 +22,7 @@
     ; misc
     ;"SPC" 'execute-extended-command
     (kbd "<leader>.")   'project-find-file
+    (kbd "<leader>,")   'consult-buffer
     ;(kbd "<leader>'")   '(lambda () (interactive) (term "/bin/bash"))
     ;(kbd "<leader>?")   'general-describe-keybindings
     (kbd "<leader>`")   '(lambda () (interactive) (dired user-emacs-directory))

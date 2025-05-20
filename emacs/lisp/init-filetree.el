@@ -25,7 +25,7 @@
         treemacs-follow-mode t
         ;treemacs-add-and-display-current-directory t
         ;treemacs-display-current-directory-exclusively t
-        ;treemacs-display-current-project-exclusively t
+        treemacs-display-current-project-exclusively t
         treemacs-project-follow-mode t
         treemacs-file-follow-delay 0.0
         treemacs-follow-after-init t
@@ -41,7 +41,8 @@
         treemacs-collapse-dirs 3
         treemacs-project-follow-cleanup t
         treemacs-git-mode 'simple)
-  (treemacs-resize-icons 18))
+  (treemacs-resize-icons 18)
+  :hook (treemacs-mode . (lambda () (set-face-background 'treemacs-window-background-face "#232326"))))
 
 (use-package treemacs-evil
   :after treemacs

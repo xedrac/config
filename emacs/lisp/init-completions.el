@@ -9,7 +9,11 @@
 ;(add-to-list 'eglot-server-programs '((java-mode java-ts-mode) . ("jdtls")))
 ;(add-to-list 'eglot-server-programs '((go-mode) . ("gopls")))
 ;(add-to-list 'eglot-server-programs '((web-mode html-mode css-mode) . ("vscode-html-language-server" "--stdio")))
-(add-hook 'prog-mode-hook 'eglot-ensure)
+
+;; Enable lsp for all programming languages except the lispy ones
+(add-hook 'prog-mode-hook (lambda ()
+                            (unless (member major-mode '(emacs-lisp-mode racket-mode lisp-mode scheme-mode common-lisp-mode))
+                              (eglot-ensure))))
 
 
 ;;; Completion ui in minibuffer

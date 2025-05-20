@@ -14,6 +14,9 @@
         completion-ignore-case t)                ; ignore case on completions
   (setq consult-fd-args "fd --color=never --type f --hidden --exclude \\#*\\#")  ; Don't show temp files in search find results
   :config
+  ;(setq consult-buffer-sources '(consult--source-file))  ; only show file-backed buffers in the list
+  ;(setq consult-ripgrep-args "rg --null --line-buffered --color=always --max-columns=1000 --path-separator / --smart-case --no-heading --with-filename --line-number --search-zip")
+  (add-hook 'consult-after-jump-hook #'font-lock-mode)
   (consult-customize
     consult-theme :preview-key '(:debounce 0.2 any)
     consult-ripgrep consult-git-grep consult-grep
@@ -21,6 +24,7 @@
     consult--source-bookmark consult--source-file-register
     consult--source-recent-file consult--source-project-recent-file
     :preview-key '(:debounce 0.0 any)))
+
 
 
 ;;; Allow specifying substrings instead of having to tab complete from the beginning in Vertico

@@ -40,9 +40,7 @@
     ":" 'evil-repeat-find-char)
 
   (evil-define-key 'normal 'global
-    ; misc
-    ;"SPC" 'execute-extended-command
-    (kbd "<leader>.")   'project-find-file
+    ;; misc
     ;(kbd "<leader>'")   '(lambda () (interactive) (term "/bin/bash"))
     ;(kbd "<leader>?")   'general-describe-keybindings
     (kbd "<leader>`")   '(lambda () (interactive) (dired user-emacs-directory))
@@ -51,16 +49,22 @@
     (kbd "<leader>es")  'eval-last-sexp
     (kbd "<leader>ee")  'eval-expression
     (kbd "<leader>ef")  'eval-defun
+
     (kbd "<leader>+")   'text-scale-increase
-    (kbd "<leader>_")   'text-scale-decrease
+    (kbd "<leader>-")   'text-scale-decrease
+
     (kbd "<leader>c")   'comment-line
     (kbd "<leader>C")   'comment-region
     ;(kbd "<leader>0")   '(lambda () (interactive) (serial-term "/dev/ttyUSB0" 115200))
     ;(kbd "<leader>1")   '(lambda () (interactive) (serial-term "/dev/ttyUSB1" 115200))
     ;(kbd "<leader>2")   '(lambda () (interactive) (serial-term "/dev/ttyUSB2" 115200))
 
+    ;; searching / finding
+    (kbd "<leader>.")   'project-find-file
+
+
     ; file s
-    (kbd "<leader>-") 'consult-locate
+    ;(kbd "<leader>-") 'consult-locate
     ;(kbd "<leader>ou" 'project-find-file ;'consult-fd
     (kbd "<leader>of") 'find-file
     (kbd "<leader>ou") 'consult-fd
@@ -85,27 +89,26 @@
     (kbd "<leader>bK") 'buf-move-up
     (kbd "<leader>bC") 'my-write-copy-to-file
 
-    ; windows
-    (kbd "<leader>wd") 'delete-window
-    (kbd "<leader>wq") 'delete-window
+    ; windows (prefix: w)
     (kbd "<leader>wv") 'evil-window-vsplit
     (kbd "<leader>ws") 'evil-window-split
     (kbd "<leader>wn") 'evil-window-next
     (kbd "<leader>wp") 'evil-window-prev
+    (kbd "<leader>wq") 'delete-window
     (kbd "<leader>w>") '(lambda () (interactive) (evil-window-increase-width 10))
     (kbd "<leader>w<") '(lambda () (interactive) (evil-window-decrease-width 10))
     (kbd "<leader>w+") '(lambda () (interactive) (evil-window-increase-height 10))
     (kbd "<leader>w-") '(lambda () (interactive) (evil-window-decrease-height 10))
 
     ; project
-    ;(kbd "<leader>pf") 'counsel-projectile-find-file
-    ;(kbd "<leader>pd") 'counsel-projectile-find-dir
-    ;(kbd "<leader>pg") 'counsel-projectile-grep
+    (kbd "<leader>pp") 'project-switch-project
+    (kbd "<leader>pb") 'project-switch-to-buffer
+    (kbd "<leader>pf") 'project-find-file
+    (kbd "<leader>pd") 'project-dired
+    ;(kbd "<leader>pg") 'project-search  ; use consult-ripgrep instead
     ;(kbd "<leader>pa") 'counsel-projectile-ag
     ;(kbd "<leader>pr") 'counsel-projectile-rg
     ;(kbd "<leader>ps") '(lambda () (interactive) (counsel-projectile-ag "-s"))
-    ;(kbd "<leader>pb") 'counsel-projectile-switch-to-buffer
-    (kbd "<leader>p") 'project-switch-project ;'counsel-projectile-switch-project
 
     ; toggles
     ;"<leader>ts" 'neotree-toggle

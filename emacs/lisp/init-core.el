@@ -27,8 +27,6 @@
 
 ;;; Start fullscreen
 (add-hook 'window-setup-hook #'toggle-frame-fullscreen)
-;(custom-set-variables
-;  '(initial-frame-alist '((fullscreen . maximized))))
 
 ;;; Extra config
 (setq x-select-enable-clipboard t)
@@ -54,9 +52,6 @@
 ;;; This keeps your init.el neater and you have the option
 ;;; to gitignore your custom.el if you see fit.
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-;(unless (file-exists-p custom-file)
-;  (write-region "" nil custom-file))
-;;; Load custom file. Don't hide errors. Hide success message
 (when (file-exists-p custom-file)
   (load custom-file))
 
@@ -98,7 +93,6 @@
           (lambda () (add-hook 'before-save-hook
                                (lambda () (delete-trailing-whitespace)
                                 nil 'local))))
-
 ;;; Save last session
 ;(desktop-save-mode 1)
 
@@ -108,7 +102,6 @@
 (setq c-default-style "k&r")
 (setq c-ts-mode-indent-offset 4)
 
-
 ;(set-frame-font "Monospace-14" nil t)
 ;(set-frame-font "DejaVu Sans Mono-14" nil t)
 ;(set-frame-font "Liberation Mono-14" nil t)
@@ -116,6 +109,6 @@
 ;(set-frame-font "FiraCode NF-14" nil t)
 ;(set-frame-font "FiraCode Nerd Font Mono" nil t)
 ;(set-frame-font "FiraCode Nerd Font Mono Light-14" nil t)
-(set-frame-font "Inconsolata Nerd Font Mono-18" nil t)
+;(set-frame-font "Inconsolata Nerd Font Mono-18" nil t)
 
 (provide 'init-core)
