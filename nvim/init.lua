@@ -92,7 +92,8 @@ vim.opt.wrap = false
 --vim.opt.listchars = {eol = '↲', tab = '▸ ', trail = '·'}
 vim.opt.listchars = {tab = '▸ ', trail = '·'}
 vim.opt.list = true
--- vim.opt.clipboard = 'unnamed'
+-- This clipboard option makes it so I can't hold down x and repeat delete...
+--vim.opt.clipboard = 'unnamed'
 
 
 -- General keybindings
