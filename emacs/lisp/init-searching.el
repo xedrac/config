@@ -31,11 +31,18 @@
   (defun consult-list-all-project-files ()
     "Show all project files immediately with live preview"
     (interactive)
-    (consult--read (project-files (project-current t))
-                   :prompt "Project file: "
-                   :category 'file
-                   :state (consult--file-state)
-                   :require-match t))
+    (let* ((prj (project-current t))
+           (files (project-files prj))
+           (root (expand-file-name (project-root prj)))
+           (relativefiles (mapcar (lambda (file)
+                                    (string-remove-prefix root file))
+                                  files)))
+      ;(consult--read (project-files (project-current t))
+      (consult--read relativefiles
+                     :prompt "Project file: "
+                     :category 'file
+                     :state (consult--file-state)
+                     :require-match t)))
   (consult-customize
     consult-theme :preview-key '(:debunce 0.2 any)
     consult-ripgrep consult-git-grep consult-grep

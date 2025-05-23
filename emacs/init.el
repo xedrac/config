@@ -143,6 +143,7 @@
   ;; Makes Emacs vertical divisor the symbol │ instead of |.
   (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?│))
   (setq-default frame-title-format '("%b")))        ; Make window title the buffer name
+  (setq project-vc-extra-root-markers '("early-init.el"))  ;; Make project.el always recognise emacs dir as a root project
 
 
 
