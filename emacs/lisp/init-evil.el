@@ -228,7 +228,5 @@
 ;(use-package evil-nerd-commenter
 ;  :ensure)
 
-(use-package buffer-move
-  :ensure)
 
 (provide 'init-evil)

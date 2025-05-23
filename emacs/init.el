@@ -96,6 +96,13 @@
   ;(prefer-coding-system 'utf-8)
   ;(set-language-environment "UTF-8")
 
+  ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
+  ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
+  ;; setting is useful beyond Corfu.
+  (setq read-extended-command-predicate #'command-completion-default-include-p)
+  ;; Emacs 30 and newer: Disable Ispell completion function. As an alternative, try `cape-dict'.
+  ;(setq text-mode-ispell-word-completion nil)
+
   :hook
   ((text-mode . display-line-numbers-mode)
    (conf-mode . display-line-numbers-mode)
@@ -104,7 +111,7 @@
                   (add-hook 'before-save-hook
                             (lambda ()
                               (delete-trailing-whitespace) nil 'local))))
-   (window-setup . #'toggle-frame-fullscreen)
+   (window-setup . toggle-frame-fullscreen)
    (after-init . (lambda ()
                    (message "Emacs has fully loaded. This code runs after startup.")
                    ;; Insert a welcome message in the *scratch* buffer displaying loading time and activated packages.
@@ -134,12 +141,86 @@
     (set-face-attribute 'default nil :family "Inconsolata Nerd Font Mono" :height 170))
 
   ;; Makes Emacs vertical divisor the symbol │ instead of |.
-  (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?│)))
-
-(setq-default frame-title-format '("%b"))        ; Make window title the buffer name
-
+  (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?│))
+  (setq-default frame-title-format '("%b")))        ; Make window title the buffer name
 
 
+
+;;; WINDOW
+;; This section configures window management in Emacs, enhancing the way buffers
+;; are displayed for a more efficient workflow. The `window' use-package helps
+;; streamline how various buffers are shown, especially those related to help,
+;; diagnostics, and completion.
+;(use-package window
+;  :ensure nil       ;; This is built-in, no need to fetch it.
+;  :custom
+;  (display-buffer-alist
+;   '(
+;      ;("\\*.*e?shell\\*"
+;      ; (display-buffer-in-side-window)
+;      ; (window-height . 0.25)
+;      ; (side . bottom)
+;      ; (slot . -1))
+;
+;     ("\\*\\(Backtrace\\|Warnings\\|Compile-Log\\|[Hh]elp\\|Messages\\|Bookmark List\\|Ibuffer\\|Occur\\|eldoc.*\\)\\*"
+;      (display-buffer-in-side-window)
+;      (window-height . 0.25)
+;      (side . bottom)
+;      (slot . 0))
+;
+;     ;; Example configuration for the LSP help buffer,
+;     ;; keeps it always on bottom using 25% of the available space:
+;     ;("\\*\\(lsp-help\\)\\*"
+;     ; (display-buffer-in-side-window)
+;     ; (window-height . 0.25)
+;     ; (side . bottom)
+;     ; (slot . 0))
+;
+;     ;; Configuration for displaying various diagnostic buffers on
+;     ;; bottom 25%:
+;     ("\\*\\(Flymake diagnostics\\|xref\\|ivy\\|Swiper\\|Completions\\)"
+;      (display-buffer-in-side-window)
+;      (window-height . 0.25)
+;      (side . bottom)
+;      (slot . 1))
+;     )))
+
+
+(use-package buffer-move
+  :ensure t)
+
+;; Visualize the undo tree (vundo)
+(use-package vundo
+  :ensure t)
+
+;;; Show recent commands/files at the top
+(require 'savehist)
+(savehist-mode)
+
+(require 'which-key)
+(which-key-mode)
+
+;; Indent code somewhat sanely when pasting
+(use-package snap-indent
+  :ensure t
+  :hook (prog-mode . snap-indent-mode)
+  :custom ((snap-indent-format '(untabify delete-trailing-whitespace))
+           (snap-indent-on-save nil)))
+
+;(use-package vterm
+;  :ensure t)
+
+;;; Different undo/redo behavior
+;(use-package undo-tree
+;  :ensure t
+;  :init (global-undo-tree-mode))
+
+;;; Benchmarking tool for testing purposes
+;;(use-package esup
+;;    :config
+;;    ;; Workaround an issue with esup and byte-compiled cl-lib
+;;    ;; but this also seems to make it less useful
+;;    (setq esup-depth 0)
 
 
 ;;; My modules
@@ -147,7 +228,6 @@
 (require 'init-evil)
 (require 'init-completions)
 (require 'init-searching)
-(require 'init-packages)
 (require 'init-keybindings)
 (require 'init-treesitter)
 (require 'init-languages)

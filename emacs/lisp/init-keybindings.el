@@ -43,7 +43,7 @@
     (kbd "<leader>-") 'consult-locate
     ;(kbd "<leader>ou" 'project-find-file ;'consult-fd
     (kbd "<leader>of") 'find-file
-    (kbd "<leader>ou") 'consult-fd
+    (kbd "<leader>ou") 'consult-list-all-project-files ;'consult-fd
     (kbd "<leader>oi") 'consult-ripgrep
     (kbd "<leader>og") 'consult-git-grep
     (kbd "<leader>oe") 'consult-buffer
