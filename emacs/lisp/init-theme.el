@@ -1,37 +1,37 @@
 
-(use-package atom-one-dark-theme
-  ;:ensure (:host github :repo "jonathanchu/atom-one-dark-theme")
-  :ensure (:host github :repo "xedrac/atom-one-dark-theme")
-  ;:init
-  ;(set-face-background 'line-number "#232326")
-  ;(set-face-background 'line-number-current-line "#232326")
-  ;(set-face-background 'default "#232326")
-  :config
-  (load-theme 'atom-one-dark t))
-
-(use-package dimmer
-  :ensure t
-  :config (dimmer-mode t))
-
-(use-package telephone-line
-  :ensure (:host github :repo "dbordak/telephone-line")
-  :config
-    (telephone-line-mode 1))
-
-;;; Show each matching paren pair as a different color to make them easier to parse visually
-(use-package rainbow-delimiters
-  :ensure t
-  :hook ((racket-mode lisp-mode) . rainbow-delimiters-mode))
-
-;;; Buffers that visit files look slightly different than other buffer types
-;(use-package solaire-mode
+;(use-package atom-one-dark-theme
+;  ;:ensure (:host github :repo "jonathanchu/atom-one-dark-theme")
+;  :ensure (:host github :repo "xedrac/atom-one-dark-theme")
+;  ;:init
+;  ;(set-face-background 'line-number "#232326")
+;  ;(set-face-background 'line-number-current-line "#232326")
+;  ;(set-face-background 'default "#232326")
+;  :config
+;  (load-theme 'atom-one-dark t)
+;
+;(use-package dimmer
 ;  :ensure t
-;  :config (solaire-global-mode +1))
-
-(use-package nerd-icons
-  :ensure t)
-  ;:init
-  ;(add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
+;  :config (dimmer-mode t))
+;
+;(use-package telephone-line
+;  :ensure (:host github :repo "dbordak/telephone-line")
+;  :config
+;    (telephone-line-mode 1))
+;
+;;;; Show each matching paren pair as a different color to make them easier to parse visually
+;(use-package rainbow-delimiters
+;  :ensure t
+;  :hook ((racket-mode lisp-mode) . rainbow-delimiters-mode))
+;
+;;;; Buffers that visit files look slightly different than other buffer types
+;;(use-package solaire-mode
+;;  :ensure t
+;;  :config (solaire-global-mode +1))
+;
+;(use-package nerd-icons
+;  :ensure t)
+;  ;:init
+;  ;(add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
 
 
 

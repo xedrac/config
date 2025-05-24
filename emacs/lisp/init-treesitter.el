@@ -1,13 +1,19 @@
-(require 'treesit)
+;(require 'treesit)
+;
+;;;; Automatically enable <lang>-ts-mode for appropriate modes
+;(use-package treesit-auto
+;  :ensure (:host github :repo "renzmann/treesit-auto")
+;  :custom
+;  (treesit-auto-install 'prompt)
+;  :config
+;  (treesit-auto-add-to-auto-mode-alist 'all)
+;  (global-treesit-auto-mode))
 
-;;; Automatically enable <lang>-ts-mode for appropriate modes
-(use-package treesit-auto
-  :ensure (:host github :repo "renzmann/treesit-auto")
-  :custom
-  (treesit-auto-install 'prompt)
-  :config
-  (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
+
+
+
+
+
 
 ;;(setq treesit-language-source-alist
 ;;  '((bash "https://github.com/tree-sitter/tree-sitter-bash")

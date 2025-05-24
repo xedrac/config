@@ -1,20 +1,20 @@
 ;;; init.el   -*- lexical-binding: t; -*-
 
+; Configure garbage collection to run less frequently
 (setq gc-cons-threshold 20000000     ; Not too big, but not too small
       gc-cons-percentage 0.1)
 
-;; Add conf folder to the load path
+;; Add "lisp" folder to the load path
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
-;; Limit garbage collection to idle times (use gcmh-mode)
-;;   NOTE:  This might be unnecessary once the igc branch is merged in emacs
-;(require 'init-gcmh)
-;(gcmh-mode 1)
-
-(setq read-process-output-max (* 1024 1024 4)) ;; Allow reading larger process outputs (improves lsp performance)
-(setq package-enable-at-startup nil)          ;; Use elpaca instead of built-in package manager
+;; Bootstrap the elpaca package manager
+(setq package-enable-at-startup nil)
 (require 'elpaca-bootstrap)
 (require 'cl-lib)
+(require 'init-functions)
+
+
+;;; ==================== BUILT-IN PACKAGES ====================
 
 (use-package emacs
   :ensure nil
@@ -108,7 +108,7 @@
    (conf-mode . display-line-numbers-mode)
    (prog-mode . (lambda ()
                   (display-line-numbers-mode 1)
-                  (add-hook 'before-save-hook
+                 (add-hook 'before-save-hook
                             (lambda ()
                               (delete-trailing-whitespace) nil 'local))))
    (window-setup . toggle-frame-fullscreen)
@@ -121,12 +121,21 @@
   :config
   (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
   (load custom-file 'noerror 'nomessage)
+  (setq read-process-output-max (* 1024 1024 4) ;; Allow reading larger process outputs (improves lsp performance)
+        project-vc-extra-root-markers '("early-init.el")  ;; Make project.el always recognise emacs dir as a root project
+        switch-to-prev-buffer-skip 'skip-these-buffers)
+  ;; Avoid littering the user's filesystem with backups
+  ;(setq backup-by-copying t      ; don't clobber symlinks
+  ;      backup-directory-alist (expand-file-name "saves/" user-emacs-directory)
+  ;      delete-old-versions t
+  ;      kept-new-versions 6
+  ;      kept-old-versions 2
+  ;      version-control t)       ; use versioned backups
 
   ;; skip over non-file buffers when cycling through buffers
   (defun skip-these-buffers (_window buffer _bury-or-kill)
     "Function for `switch-to-prev-buffer-skip'."
     (string-match "\\*[^*]+\\*" (buffer-name buffer)))
-  (setq switch-to-prev-buffer-skip 'skip-these-buffers)
 
   ;; Set default font
   (set-face-attribute 'default nil
@@ -136,15 +145,9 @@
             :weight 'normal
             :width 'normal)
 
-  (when (eq system-type 'darwin)       ;; Check if the system is macOS
-    (setq mac-command-modifier 'meta)  ;; Set the Command key to act as the Meta key
-    (set-face-attribute 'default nil :family "Inconsolata Nerd Font Mono" :height 170))
-
   ;; Makes Emacs vertical divisor the symbol │ instead of |.
   (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?│))
   (setq-default frame-title-format '("%b")))        ; Make window title the buffer name
-  (setq project-vc-extra-root-markers '("early-init.el"))  ;; Make project.el always recognise emacs dir as a root project
-
 
 
 ;;; WINDOW
@@ -187,19 +190,482 @@
 ;     )))
 
 
-(use-package buffer-move
-  :ensure t)
+;; Built-in file manager
+(use-package dired
+  :ensure nil
+  :custom
+  (dired-listing-switches "-lah --group-directories-first")  ;; Display files in a human-readable format and group directories first.
+  (dired-dwim-target t)                                      ;; Enable "do what I mean" for target directories.
+  (dired-guess-shell-alist-user
+   '(("\\.\\(png\\|jpe?g\\|tiff\\)" "feh" "xdg-open" "open") ;; Open image files with `feh' or the default viewer.
+     ("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv" "xdg-open" "open") ;; Open audio and video files with `mpv'.
+     (".*" "open" "xdg-open")))                              ;; Default opening command for other files.
+  (dired-kill-when-opening-new-dired-buffer t))               ;; Close the previous buffer when opening a new `dired' instance.
+  ;:config
+  ;(when (eq system-type 'darwin)
+  ;  (let ((gls (executable-find "gls")))
+  ;    (when gls
+  ;      (setq insert-directory-program gls)))))
 
-;; Visualize the undo tree (vundo)
-(use-package vundo
-  :ensure t)
 
-;;; Show recent commands/files at the top
+;; Incremental search
+;; TODO:  How is this different that evil's / search?
+(use-package isearch
+  :ensure nil
+  :config
+  (setq isearch-lazy-count t)                  ;; Enable lazy counting to show current match information.
+  (setq lazy-count-prefix-format "(%s/%s) ")   ;; Format for displaying current match count.
+  (setq lazy-count-suffix-format nil)          ;; Disable suffix formatting for match count.
+  (setq search-whitespace-regexp ".*?")        ;; Allow searching across whitespace.
+  :bind (("C-s" . isearch-forward)             ;; Bind C-s to forward isearch.
+         ("C-r" . isearch-backward)))          ;; Bind C-r to backward isearch.
+
+
+;; Eldoc provides helpful inline documentation for functions and variables
+;; in the minibuffer, enhancing the development experience. It can be particularly useful
+;; in programming modes, as it helps you understand the context of functions as you type.
+;; This package is built-in, so there's no need to fetch it separately.
+;; The following line enables Eldoc globally for all buffers.
+;; TODO:  Does this conflict with devdocs?
+(use-package eldoc
+  :ensure nil
+  :init
+  (global-eldoc-mode))
+
+
+;; Live feedback on warnings/errors in your code
+(use-package flymake
+  :ensure nil
+  :defer t
+  :hook (prog-mode . flymake-mode)
+  :custom
+  (flymake-margin-indicators-string
+   '((error "!»" compilation-error)
+     (warning "»" compilation-warning)
+     (note "»" compilation-info))))
+
+
+;; Note organizer
+;(use-package org
+;  :ensure nil
+;  :defer t)
+
+
+;; Popup contextual keybindings
+(use-package which-key
+  :ensure nil
+  :defer t
+  :hook
+  (after-init . which-key-mode))
+
+
+;; Show recent commands/files at the top
 (require 'savehist)
 (savehist-mode)
 
-(require 'which-key)
-(which-key-mode)
+
+;; ERC (Emacs Relay Chat) is a built-in IRC client
+(use-package erc
+  :ensure nil
+  :defer t
+  :custom
+  (erc-join-buffer 'window)                                        ;; Open a new window for joining channels.
+  (erc-hide-list '("JOIN" "PART" "QUIT"))                          ;; Hide messages for joins, parts, and quits to reduce clutter.
+  (erc-timestamp-format "[%H:%M]")                                 ;; Format for timestamps in messages.
+  (erc-autojoin-channels-alist '((".*\\.libera\\.chat" "#emacs"))));; Automatically join the #emacs channel on Libera.Chat.
+
+
+
+
+
+;;; ==================== EXTERNAL PACKAGES ====================
+
+
+;; Limit garbage collection to idle times (use gcmh-mode)
+;;   NOTE:  This might be unnecessary once the igc branch is merged in emacs
+;(require 'init-gcmh)
+;(gcmh-mode 1)
+
+
+(use-package atom-one-dark-theme
+  ;:ensure (:host github :repo "jonathanchu/atom-one-dark-theme")
+  :ensure (:host github :repo "xedrac/atom-one-dark-theme")  ; warmer version of the above theme
+  :config
+  (load-theme 'atom-one-dark t))
+
+
+(use-package nerd-icons
+  :ensure t)
+  ;:init
+  ;(add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
+
+
+;; Nice modeline to match my neovim one
+(use-package telephone-line
+  :ensure (:host github :repo "dbordak/telephone-line")
+  :config
+    (telephone-line-mode 1))
+
+
+;; Automatically enable <lang>-ts-mode for appropriate modes
+(use-package treesit-auto
+  :ensure (:host github :repo "renzmann/treesit-auto")
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
+
+
+(use-package eglot
+  :ensure nil
+  :config
+  (add-to-list 'eglot-server-programs '((rust-mode rust-ts-mode) . ("rust-analyzer")))
+  (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pyright" "--stdio")))
+  (add-to-list 'eglot-server-programs '((c-mode c++-mode c-ts-mode c++-ts-mode) . ("clangd" "--background-index")))
+  ;(add-to-list 'eglot-server-programs '((c-mode c++-mode c-ts-mode c++-ts-mode) . ("clangd" "--compile-commands-dir=\"build\")))
+  (add-to-list 'eglot-server-programs '((haskell-mode haskell-ts-mode) . ("haskell-language-server-wrapper" "--lsp")))
+  ;(add-to-list 'eglot-server-programs '((js-mode typescript-mode ts-mode) . ("typescript-language-server" "--stdio")))
+  ;(add-to-list 'eglot-server-programs '((java-mode java-ts-mode) . ("jdtls")))
+  ;(add-to-list 'eglot-server-programs '((go-mode) . ("gopls")))
+  ;(add-to-list 'eglot-server-programs '((web-mode html-mode css-mode) . ("vscode-html-language-server" "--stdio")))
+  :hook
+  (prog-mode . (lambda ()
+                 (unless (member major-mode '(emacs-lisp-mode racket-mode lisp-mode scheme-mode common-lisp-mode))
+                   (eglot-ensure)))))
+
+
+;;; Completion ui in minibuffer
+(use-package vertico
+  :ensure t
+  :bind (:map minibuffer-local-map
+          ("M-h" . backward-kill-word))
+  :custom
+  (vertico-cycle t)
+  ;(vertico-resize t)
+  (setq vertico-count 30)
+  (setq vertico-scroll-margin 0)
+  :init
+  (vertico-mode))
+
+
+;;; Add context to results in the margins (file permissions, dates, help info, etc...)
+(use-package marginalia
+  :ensure t
+  :after vertico
+  :custom
+  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+  :init
+  (marginalia-mode))
+
+
+;;; Completion at point popups in buffers
+(use-package corfu
+  :ensure t
+  :init
+  (global-corfu-mode)
+  (corfu-popupinfo-mode)
+  (corfu-history-mode)
+  :custom
+  (setq eglot-stay-out-of '(completion-at-point))
+  (corfu-auto t)                ;; Enable auto completion
+  (corfu-auto-delay 0.2)        ;; seconds before completion popup is shown
+  (corfu-auto-prefix 1)         ;; num chars required to show completions
+  (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  :hook (prog-mode shell-mode eshell-mode))
+
+;;; Much nicer icons for corfu completions
+(use-package kind-icon
+  :ensure t
+  :after corfu
+  ;:custom
+  ; (kind-icon-blend-background t)
+  ; (kind-icon-default-face 'corfu-default) ; only needed with blend-background
+  :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+
+(use-package nerd-icons-completion
+  :ensure t
+  :after marginalia
+  :config
+  (nerd-icons-completion-mode))
+
+
+;;; vim emulation
+(use-package evil
+  :ensure t
+  :demand t
+  :init
+  (setq evil-want-keybinding nil)
+  ;(setq evil-want-C-u-scroll t)
+  ;(setq evil-shift-width 4)
+  ;(setq evil-search-module 'evil-search)
+  :config
+  (evil-mode 1)
+  (setq evil-emacs-state-cursor '("red" box))
+  (setq evil-motion-state-cursor '("orange" box))
+  (setq evil-normal-state-cursor '("green" box))
+  (setq evil-visual-state-cursor '("magenta" box))
+  (setq evil-insert-state-cursor '("blue" bar))
+  (setq evil-replace-state-cursor '("red" bar))
+  (setq evil-operator-state-cursor '("red" hollow))
+    ;; Center active search highlight
+  (advice-add 'evil-search-next :after
+    (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
+  (advice-add 'evil-search-previous :after
+    (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos)))))
+
+
+;;; evil keybindings for other parts of emacs
+(use-package evil-collection
+  :ensure
+  :after evil
+  :config
+  (evil-collection-init))
+
+
+;;; Use escape (or custom escape sequence e.g. "jk"), to escape from everything
+(use-package evil-escape
+  :ensure
+  :after evil)
+
+;;; Quick way to move or target something with 2-char sequence
+(use-package evil-snipe
+  :ensure
+  :after evil
+  :config
+  (evil-snipe-override-mode 1))
+
+;;; Quickly change surrounding tags/quotes etc...
+(use-package evil-surround
+  :ensure
+  :after evil
+  :config
+  (global-evil-surround-mode 1))
+
+;;; Align things like a list of key=value lines to have the = signs all line up on the same column
+(use-package evil-lion
+  :ensure
+  :config
+  (evil-lion-mode))
+
+(use-package vimish-fold
+  :ensure
+  :after evil)
+
+(use-package evil-vimish-fold
+  :ensure
+  :after vimish-fold
+  :hook (prog-mode text-mode conf-mode))
+
+
+;;; Provides ripgrep and file finding
+(use-package consult
+  :ensure t
+  :demand t
+  :hook
+  ((completion-list-mode . consult-preview-at-point-mode)
+   (consult-after-jump . font-lock-mode))
+  :init
+  (setq register-preview-delay 0.01
+        register-preview-function #'consult-register-format)
+  (advice-add #'register-preview :override #'consult-register-window)
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref
+        read-file-name-completion-ignore-case t  ; ignore case when searching filenames
+        read-buffer-completion-ignore-case t     ; ignore case when grepping buffers
+        completion-ignore-case t)                ; ignore case on completions
+  (setq consult-fd-args "fd --color=never --type f --hidden --exclude \\#*\\#")  ; Don't show temp files in search find results
+  :config
+  (setq consult-buffer-sources '(consult--source-file))  ; only show file-backed buffers in the list
+  ;(setq consult-ripgrep-args "rg --null --line-buffered --color=always --max-columns=1000 --path-separator / --smart-case --no-heading --with-filename --line-number --search-zip")
+  ;(defun consult-list-all-project-files ()
+  ;  "Show all project files immediately"
+  ;  (interactive)
+  ;  (consult--read (project-files (project-current t))
+  ;                 :prompt "Project file: "
+  ;                 :category 'file))
+
+  ; Emulate telescope.vim by showing file live previews
+  ; TODO  Showing relative filenames doesn't work because consult can't open/preview the files...
+  ;       Can I add the project root back on when I go to open the file?
+  (defun consult-list-all-project-files ()
+    "Show all project files immediately with live preview"
+    (interactive)
+    (let* ((prj (project-current t))
+           (files (project-files prj))
+           (root (expand-file-name (project-root prj)))
+           (relativefiles (mapcar (lambda (file)
+                                    (string-remove-prefix root file))
+                                  files)))
+      ;(consult--read (project-files (project-current t))
+      (consult--read relativefiles
+                     :prompt "Project file: "
+                     :category 'file
+                     :state (consult--file-state)
+                     :require-match t)))
+  (consult-customize
+    consult-theme :preview-key '(:debunce 0.2 any)
+    consult-ripgrep consult-git-grep consult-grep
+    consult-bookmark consult-recent-file consult-xref
+    consult--source-bookmark consult--source-file-register
+    consult--source-recent-file consult--source-project-recent-file
+    :preview-key '(:debounce 0.0 any)))
+
+
+;;; Allow specifying substrings instead of having to tab complete from the beginning in Vertico
+(use-package orderless
+  :ensure t
+  :init
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles partial-completion)))))
+
+;;; Contextual actions for vertico (delete, rename, etc...)
+(use-package embark
+  :ensure t
+  :bind (("C-c" . embark-act)         ;; pick some comfortable binding
+         ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+  :init
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+  :config
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+
+;;; Contextual actions for consult stuff too
+(use-package embark-consult
+  :ensure t   ; only need to install it, embark loads it after consult if found
+  :hook (embark-collect-mode . consult-preview-at-point-mode))
+
+
+(use-package transient
+  :ensure (:host github :repo "magit/transient"))
+
+(use-package magit
+  :ensure (:host github :repo "magit/magit"))
+
+
+(use-package haskell-mode
+  :ensure t)
+
+;; Scheme REPL integration
+(use-package geiser-guile
+  :ensure t
+  :config (setq geiser-guile-binary "guile3.0"))
+
+(use-package racket-mode
+  :ensure t
+  :hook (racket-mode . (lambda ()
+                         (racket-xp-mode)
+                         (font-lock-mode)))
+  :bind (:map racket-mode-map
+              ("<f5>" . racket-run))
+  :config
+  ;(setq racket-completion-min-chars 1)
+  ;(setq racket-xp-completion-min-chars 1)
+  (setq tab-always-indent 'complete))
+
+
+;(use-package clojure-mode
+;  :ensure t)
+;
+;(use-package cider
+;  :ensure)
+
+(use-package protobuf-mode
+  :ensure t)
+
+(use-package cmake-mode
+  :ensure t)
+
+(use-package dockerfile-mode
+  :ensure t)
+
+(use-package cargo
+  :ensure t)
+
+;; Format on save for rust files
+;(add-hook 'rust-ts-mode-hook
+;          (lambda ()
+;             (add-hook 'before-save-hook 'cargo-process-fmt nil 'local))) ; local save hook for rust
+
+
+;; Make inactive windows slightly dimmer
+(use-package dimmer
+  :ensure t
+  :config (dimmer-mode t))
+
+;; Show each matching paren pair as a different color to make them easier to parse visually
+;; TODO:  Still not sure if I like this mode
+(use-package rainbow-delimiters
+  :ensure t
+  :hook ((racket-mode . rainbow-delimiters-mode)
+         (lisp-mode . rainbow-delimiters-mode)
+         (emacs-lisp-mode . rainbow-delimiters-mode)
+         (scheme-mode . rainbow-delimiters-mode)))
+
+(use-package diredc
+  :defer t)
+
+;;; Project tree viewer
+;;; TODO:  Just use dired instead...?
+;(use-package treemacs
+;  :ensure t
+;  ;:defer t
+;  :config
+;  (setq treemacs-filewatch-mode t
+;        treemacs-follow-mode t
+;        treemacs-tab-bar t
+;        ;treemacs-add-and-display-current-directory t
+;        ;treemacs-display-current-directory-exclusively t
+;        treemacs-display-current-project-exclusively t
+;        treemacs-project-follow-mode t
+;        treemacs-file-follow-delay 0.0
+;        treemacs-follow-after-init t
+;        treemacs-expand-after-init t
+;        treemacs-litter-directories '("/.venv" "/build" "/.cache" "/eln-cache")
+;        treemacs-show-cursor nil
+;        treemacs-wide-toggle-width 70
+;        treemacs-width 40
+;        treemacs-move-files-by-mouse-dragging t
+;        treemacs-persist-file (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+;        treemacs-missing-project-action 'ask
+;        treemacs-find-workspace-method 'find-for-file-or-pick-first
+;        treemacs-collapse-dirs 3
+;        treemacs-project-follow-cleanup t
+;        treemacs-git-commit-diff-mode t
+;        treemacs-git-mode 'simple)
+;  (treemacs-resize-icons 18))
+;  ;:hook (treemacs-mode . (lambda () (set-face-background 'treemacs-window-background-face "#232326"))))
+;
+;(use-package treemacs-evil
+;  :after treemacs
+;  :ensure t)
+;
+;(use-package treemacs-magit
+;  :after '(treemacs magit)
+;  :ensure t)
+
+
+(use-package buffer-move
+  :ensure t)
+
+
+;;; Visualize the undo tree (vundo)
+;(use-package vundo
+;  :ensure t)
+
+;;; Different undo/redo behavior
+;(use-package undo-tree
+;  :ensure t
+;  :init (global-undo-tree-mode))
+
 
 ;; Indent code somewhat sanely when pasting
 (use-package snap-indent
@@ -211,11 +677,6 @@
 ;(use-package vterm
 ;  :ensure t)
 
-;;; Different undo/redo behavior
-;(use-package undo-tree
-;  :ensure t
-;  :init (global-undo-tree-mode))
-
 ;;; Benchmarking tool for testing purposes
 ;;(use-package esup
 ;;    :config
@@ -224,53 +685,146 @@
 ;;    (setq esup-depth 0)
 
 
-;;; My modules
-(require 'init-theme)
-(require 'init-evil)
-(require 'init-completions)
-(require 'init-searching)
-(require 'init-keybindings)
-(require 'init-treesitter)
-(require 'init-languages)
-(require 'init-filetree)
-(require 'init-git)
+
+(with-eval-after-load 'evil
+  (evil-set-leader 'normal (kbd "SPC"))
+  (evil-define-key '(normal motion visual) 'global
+    "/" 'consult-line
+    ";" 'evil-ex
+    ":" 'evil-repeat-find-char)
+
+  (evil-define-key 'normal 'global
+    ; misc
+    ;"SPC" 'execute-extended-command
+    (kbd "<leader>.")   'project-find-file
+    (kbd "<leader>,")   'consult-buffer
+    ;(kbd "<leader>'")   '(lambda () (interactive) (term "/bin/bash"))
+    ;(kbd "<leader>?")   'general-describe-keybindings
+    (kbd "<leader>`")   '(lambda () (interactive) (dired user-emacs-directory))
+    (kbd "<leader>R")   '(lambda() (interactive) (load-file user-init-file))
+    (kbd "<leader>eb")  'eval-buffer
+    (kbd "<leader>es")  'eval-last-sexp
+    (kbd "<leader>ee")  'eval-expression
+    (kbd "<leader>ef")  'eval-defun
+    (kbd "<leader>+")   'text-scale-increase
+    (kbd "<leader>_")   'text-scale-decrease
+    (kbd "<leader>c")   'comment-line
+    (kbd "<leader>C")   'comment-region
+    ;(kbd "<leader>0")   '(lambda () (interactive) (serial-term "/dev/ttyUSB0" 115200))
+    ;(kbd "<leader>1")   '(lambda () (interactive) (serial-term "/dev/ttyUSB1" 115200))
+    ;(kbd "<leader>2")   '(lambda () (interactive) (serial-term "/dev/ttyUSB2" 115200))
+
+    ; file s
+    (kbd "<leader>-") 'consult-locate
+    ;(kbd "<leader>ou" 'project-find-file ;'consult-fd
+    (kbd "<leader>of") 'find-file
+    (kbd "<leader>ou") 'consult-list-all-project-files ;'consult-fd
+    (kbd "<leader>oi") 'consult-ripgrep
+    (kbd "<leader>og") 'consult-git-grep
+    (kbd "<leader>oe") 'consult-buffer
+
+    ; buffers
+    (kbd "<leader>ba") 'consult-buffer
+    (kbd "<leader>bb") 'consult-project-buffer
+    (kbd "<leader>bl") 'list-buffers
+    (kbd "<leader>bN") 'evil-buffer-new
+    (kbd "<leader>bd") '((lambda () (interactive) (kill-buffer (current-buffer))))  ; this works more reliably than 'kill-this-buffer
+    (kbd "<leader>bq") '((lambda () (interactive) (kill-buffer (current-buffer))))
+    (kbd "<leader>bn") 'evil-next-buffer
+    (kbd "<leader>bp") 'evil-prev-buffer
+    (kbd "<leader>bs") 'save-buffer
+    (kbd "<leader>bS") '((lambda () (interactive) (save-some-buffers t))) ; :which-key "save all")
+    (kbd "<leader>bH") 'buf-move-left
+    (kbd "<leader>bL") 'buf-move-right
+    (kbd "<leader>bJ") 'buf-move-down
+    (kbd "<leader>bK") 'buf-move-up
+    (kbd "<leader>bC") 'my-write-copy-to-file
+
+    ; windows (prefix: w)
+    (kbd "<leader>wv") 'evil-window-vsplit
+    (kbd "<leader>ws") 'evil-window-split
+    (kbd "<leader>wn") 'evil-window-next
+    (kbd "<leader>wp") 'evil-window-prev
+    (kbd "<leader>wq") 'delete-window
+    (kbd "<leader>w>") '(lambda () (interactive) (evil-window-increase-width 10))
+    (kbd "<leader>w<") '(lambda () (interactive) (evil-window-decrease-width 10))
+    (kbd "<leader>w+") '(lambda () (interactive) (evil-window-increase-height 10))
+    (kbd "<leader>w-") '(lambda () (interactive) (evil-window-decrease-height 10))
+
+    ; project
+    (kbd "<leader>p") 'project-switch-project ;'counsel-projectile-switch-project
+    ;(kbd "<leader>pf") 'counsel-projectile-find-file
+    ;(kbd "<leader>pd") 'counsel-projectile-find-dir
+    ;(kbd "<leader>pg") 'counsel-projectile-grep
+    ;(kbd "<leader>pa") 'counsel-projectile-ag
+    ;(kbd "<leader>pr") 'counsel-projectile-rg
+    ;(kbd "<leader>ps") '(lambda () (interactive) (counsel-projectile-ag "-s"))
+    ;(kbd "<leader>pb") 'counsel-projectile-switch-to-buffer
+
+    ; toggles
+    ;"<leader>ts" 'neotree-toggle
+    (kbd "<leader>ts") 'treemacs
+    (kbd "<leader>tw") 'whitespace-mode
+
+    ; help
+    (kbd "<leader>hp") 'describe-point
+    (kbd "<leader>hf") 'describe-function ;'counsel-describe-function
+    (kbd "<leader>hv") 'describe-variable ;'counsel-describe-variable
+    (kbd "<leader>hk") 'describe-key
+
+    ;; lsp symbol stuff
+    (kbd "<leader>s,") 'xref-find-definitions
+    (kbd "<leader>s.") 'xref-find-definitions-other-window
+    (kbd "<leader>so") 'xref-go-back
+    (kbd "<leader>sr") 'xref-find-references
+    (kbd "<leader>sc") 'xref-find-references-and-replace))
+    ;(kbd "<leader>sp") 'lsp-ui-peek-find-definitions
+    ;(kbd "<leader>s'") 'lsp-ui-peek-find-references
+    ;(kbd "<leader>s,") 'lsp-ui-peek--goto-xref-other-window
+    ;;(kbd "<leader>s,") 'lsp-ui-peek--goto-xref
+    ;(kbd "<leader>sr") 'lsp-rename
+
+    ;; chat/irc/slack
+    ;"(kbd <leader>if") '((lambda () (interactive) (irc-freenode-connect)) :which-key "Freenode")
+    ;"(kbd <leader>ib") '((lambda () (interactive) (erc-switch-to-buffer)) :which-key "ERC switch buffer")
+
+    ; racket
+    ;"(kbd <leader>rR") 'racket-run
+    ;"(kbd <leader>rr") 'racket-run-and-switch-to-repl
+    ;"(kbd <leader>rp") 'racket-repl
+    ;"(kbd <leader>re") 'racket-repl-switch-to-edit
+    ;"(kbd <leader>rd") 'racket-doc
+
+    ; rust
+    ;; (kbd "<leader>rD") '((lambda () (interactive)
+        ;; (let ((rustdir "~/projects/rust/"))
+          ;; (progn (cd rustdir)
+           ;; (setq default-directory rustdir))))
+      ;; :which-key "cd ~/projects/rust")
+    ;; (kbd "<leader>rn") 'cargo-process-new
+    ;; (kbd "<leader>rr") 'cargo-process-run
+    ;; (kbd "<leader>rd") 'cargo-process-doc
+    ;; (kbd "<leader>rt") 'cargo-process-test
+    ;; (kbd "<leader>rf") 'cargo-process-format
+    ;; (kbd "<leader>rc") 'cargo-process-clean
+    ;; (kbd "<leader>rb") 'cargo-process-build
+
+    ;  ; magit
+    ;  (kbd "<leader>md") 'magit-diff-unstaged
+    ;  (kbd "<leader>mD") 'magit-diff-buffer-file
+    ;  (kbd "<leader>mg") 'magit-diff-staged
+    ;  (kbd "<leader>ml") 'magit-log-all
+    ;  (kbd "<leader>ms") 'magit-status
+    ;  (kbd "<leader>mc") 'magit-branch-checkout
+    ;  (kbd "<leader>mb") 'magit-blame
 
 
-;; A big contributor to startup times is garbage collection.  We up the GC
-;; threshold to temporarily prevent it from running, and then reset it later
-;; using a hook.
-;(setq gc-cons-threshold most-positive-fixnum
-;      gc-cons-percentage 0.6)
+;; Allow M-x in serial term
+(eval-after-load 'term
+  '(define-key term-raw-map (kbd "M-x") #'execute-extended-command))
 
-;; Set the file-name-handler to nil (because regexing is cpu intensive)
-;; But, keep a ref to it so we can hook it in later
-;(defvar default-file-name-handler-alist file-name-handler-alist)
-;(setq file-name-handler-alist nil)
-;(add-hook 'emacs-startup-hook
-;  (lambda ()
-;    (setq gc-cons-threshold 16777216
-;          gc-cons-percentage 0.1
-;          file-name-handler-alist default-file-name-handler-alist)))
 
-;; For native comp
-;(when (fboundp 'native-compile-async)
-;  (setq comp-async-jobs-number 15
-;        comp-deferred-compilation t
-;        comp-deferred-compilation-black-list '()))
 
-;(load (expand-file-name "~/.roswell/helper.el"))
-
-;;; Avoid littering the user's filesystem with backups
-;(setq
-;   backup-by-copying t      ; don't clobber symlinks
-;   backup-directory-alist (expand-file-name "saves/" user-emacs-directory)
-;   delete-old-versions t
-;   kept-new-versions 6
-;   kept-old-versions 2
-;   version-control t)       ; use versioned backups
-
-;(setenv "LANG" "en_US.UTF-8")
-;(setenv "LC_ALL" "en_US.UTF-8")
 
 
 (provide 'init)
