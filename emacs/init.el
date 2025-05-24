@@ -209,15 +209,15 @@
 
 ;; Incremental search
 ;; TODO:  How is this different that evil's / search?
-(use-package isearch
-  :ensure nil
-  :config
-  (setq isearch-lazy-count t)                  ;; Enable lazy counting to show current match information.
-  (setq lazy-count-prefix-format "(%s/%s) ")   ;; Format for displaying current match count.
-  (setq lazy-count-suffix-format nil)          ;; Disable suffix formatting for match count.
-  (setq search-whitespace-regexp ".*?")        ;; Allow searching across whitespace.
-  :bind (("C-s" . isearch-forward)             ;; Bind C-s to forward isearch.
-         ("C-r" . isearch-backward)))          ;; Bind C-r to backward isearch.
+;(use-package isearch
+;  :ensure nil
+;  :config
+;  (setq isearch-lazy-count t)                  ;; Enable lazy counting to show current match information.
+;  (setq lazy-count-prefix-format "(%s/%s) ")   ;; Format for displaying current match count.
+;  (setq lazy-count-suffix-format nil)          ;; Disable suffix formatting for match count.
+;  (setq search-whitespace-regexp ".*?")        ;; Allow searching across whitespace.
+;  :bind (("C-s" . isearch-forward)             ;; Bind C-s to forward isearch.
+;         ("C-r" . isearch-backward)))          ;; Bind C-r to backward isearch.
 
 
 ;; Eldoc provides helpful inline documentation for functions and variables
@@ -232,16 +232,20 @@
   (global-eldoc-mode))
 
 
-;; Live feedback on warnings/errors in your code
-(use-package flymake
-  :ensure nil
-  :defer t
-  :hook (prog-mode . flymake-mode)
-  :custom
-  (flymake-margin-indicators-string
-   '((error "!»" compilation-error)
-     (warning "»" compilation-warning)
-     (note "»" compilation-info))))
+;;; Live feedback on warnings/errors in your code
+;(use-package flymake
+;  :ensure nil
+;  :hook (rust-mode rust-ts-mode python-mode python-ts-mode haskell-mode haskell-ts-mode c-mode c-ts-mode c++-mode c++-ts-mode)
+;  :custom
+;  (flymake-margin-indicators-string
+;   '((error "!»" compilation-error)
+;     (warning "»" compilation-warning)
+;     (note "»" compilation-info)))
+;  (use-package flymake-bashate :ensure t)
+;  (use-package FlymakeHaskell :ensure t)
+;  (use-package FlymakeLua :ensure t)
+;  (use-package FlymakeElisp :ensure t)
+;)
 
 
 ;; Note organizer
@@ -318,6 +322,8 @@
 
 (use-package eglot
   :ensure nil
+  :init
+  (setq eglot-ignored-modes '(lisp-interaction-mode))
   :config
   (add-to-list 'eglot-server-programs '((rust-mode rust-ts-mode) . ("rust-analyzer")))
   (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pyright" "--stdio")))
@@ -676,6 +682,21 @@
   :ensure (:host github :repo "justinbarclay/parinfer-rust-mode")
   :hook (emacs-lisp-mode lisp-mode))
 
+(use-package shell-pop
+  :ensure t
+  :custom
+  (shell-pop-default-directory "/Users/kyagi/git")
+  (shell-pop-shell-type (quote ("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell)))))
+  (shell-pop-term-shell "/bin/bash")
+  ;(shell-pop-universal-key "C-t")
+  (shell-pop-universal-key "<f8>")
+  (shell-pop-window-size 30)
+  (shell-pop-full-span t)
+  (shell-pop-window-position "bottom")
+  (shell-pop-autocd-to-working-dir t)
+  (shell-pop-restore-window-configuration t)
+  (shell-pop-cleanup-buffer-at-process-exit t))
+
 
 ;(use-package vterm
 ;  :ensure t)
@@ -692,9 +713,11 @@
 (with-eval-after-load 'evil
   (evil-set-leader 'normal (kbd "SPC"))
   (evil-define-key '(normal motion visual) 'global
-    "/" 'consult-line
+    ;"/" 'consult-line
     ";" 'evil-ex
-    ":" 'evil-repeat-find-char)
+    ":" 'evil-repeat-find-char
+    (kbd "C-+") 'text-scale-increase
+    (kbd "C--") 'text-scale-decrease)
 
   (evil-define-key 'normal 'global
     ; misc
@@ -709,8 +732,6 @@
     (kbd "<leader>es")  'eval-last-sexp
     (kbd "<leader>ee")  'eval-expression
     (kbd "<leader>ef")  'eval-defun
-    (kbd "<leader>+")   'text-scale-increase
-    (kbd "<leader>_")   'text-scale-decrease
     (kbd "<leader>c")   'comment-line
     (kbd "<leader>C")   'comment-region
     ;(kbd "<leader>0")   '(lambda () (interactive) (serial-term "/dev/ttyUSB0" 115200))
