@@ -79,7 +79,7 @@
   (set-face-background 'window-divider "#000000")
   (when scroll-bar-mode
     (scroll-bar-mode -1))      ;; Disable the scroll bar if it is active.
-  (global-hl-line-mode 1)      ;; Enable highlight of the current line
+  ;(global-hl-line-mode 1)      ;; Enable highlight of the current line
   (global-auto-revert-mode 1)  ;; Enable global auto-revert mode to keep buffers up to date with their corresponding files.
   (global-font-lock-mode 1)
   (indent-tabs-mode -1)        ;; Disable the use of tabs for indentation (use spaces instead).
@@ -139,15 +139,15 @@
 
   ;; Set default font
   (set-face-attribute 'default nil
-            :family "Inconsolata Nerd Font Mono"
-            ;:family "Inconsolata Nerd Font Mono-20"
-            :height 200
-            :weight 'normal
-            :width 'normal)
+                      :family "Inconsolata Nerd Font Mono"
+                      :height 150
+                      :weight 'normal
+                      :width 'normal)
 
   ;; Makes Emacs vertical divisor the symbol │ instead of |.
   (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?│))
-  (setq-default frame-title-format '("%b")))        ; Make window title the buffer name
+  (setq-default frame-title-format '("%b"))                 ;; Make window title the buffer name
+  (setq project-vc-extra-root-markers '("early-init.el")))  ;; Make project.el always recognise emacs dir as a root project
 
 
 ;;; WINDOW
@@ -206,7 +206,6 @@
   ;  (let ((gls (executable-find "gls")))
   ;    (when gls
   ;      (setq insert-directory-program gls)))))
-
 
 ;; Incremental search
 ;; TODO:  How is this different that evil's / search?
@@ -453,12 +452,6 @@
   :ensure
   :after evil)
 
-(use-package evil-vimish-fold
-  :ensure
-  :after vimish-fold
-  :hook (prog-mode text-mode conf-mode))
-
-
 ;;; Provides ripgrep and file finding
 (use-package consult
   :ensure t
@@ -479,31 +472,35 @@
   :config
   (setq consult-buffer-sources '(consult--source-file))  ; only show file-backed buffers in the list
   ;(setq consult-ripgrep-args "rg --null --line-buffered --color=always --max-columns=1000 --path-separator / --smart-case --no-heading --with-filename --line-number --search-zip")
-  ;(defun consult-list-all-project-files ()
-  ;  "Show all project files immediately"
-  ;  (interactive)
-  ;  (consult--read (project-files (project-current t))
-  ;                 :prompt "Project file: "
-  ;                 :category 'file))
+
+  (defun consult-list-all-project-files ()
+    "Show all project files immediately"
+    (interactive)
+    (consult--read (project-files (project-current t))
+                   :prompt "Project file: "
+                   :category 'file
+                   :state (consult--file-state)
+                   :require-match t))
 
   ; Emulate telescope.vim by showing file live previews
   ; TODO  Showing relative filenames doesn't work because consult can't open/preview the files...
   ;       Can I add the project root back on when I go to open the file?
-  (defun consult-list-all-project-files ()
-    "Show all project files immediately with live preview"
-    (interactive)
-    (let* ((prj (project-current t))
-           (files (project-files prj))
-           (root (expand-file-name (project-root prj)))
-           (relativefiles (mapcar (lambda (file)
-                                    (string-remove-prefix root file))
-                                  files)))
-      ;(consult--read (project-files (project-current t))
-      (consult--read relativefiles
-                     :prompt "Project file: "
-                     :category 'file
-                     :state (consult--file-state)
-                     :require-match t)))
+  ;(defun consult-list-all-project-files ()
+  ;  "Show all project files immediately with live preview"
+  ;  (interactive)
+  ;  (let* ((prj (project-current t))
+  ;         (files (project-files prj))
+  ;         (root (expand-file-name (project-root prj)))
+  ;         (relativefiles (mapcar (lambda (file)
+  ;                                  (string-remove-prefix root file))
+  ;                                files)))
+  ;    ;(consult--read (project-files (project-current t))
+  ;    (consult--read relativefiles
+  ;                   :prompt "Project file: "
+  ;                   :category 'file
+  ;                   :state (consult--file-state)
+  ;                   :require-match t)))
+
   (consult-customize
     consult-theme :preview-key '(:debunce 0.2 any)
     consult-ripgrep consult-git-grep consult-grep
@@ -673,6 +670,12 @@
   :hook (prog-mode . snap-indent-mode)
   :custom ((snap-indent-format '(untabify delete-trailing-whitespace))
            (snap-indent-on-save nil)))
+
+
+(use-package parinfer-rust-mode
+  :ensure (:host github :repo "justinbarclay/parinfer-rust-mode")
+  :hook (emacs-lisp-mode lisp-mode))
+
 
 ;(use-package vterm
 ;  :ensure t)
