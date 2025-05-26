@@ -79,7 +79,7 @@
   (set-face-background 'window-divider "#000000")
   (when scroll-bar-mode
     (scroll-bar-mode -1))      ;; Disable the scroll bar if it is active.
-  ;(global-hl-line-mode 1)      ;; Enable highlight of the current line
+  (global-hl-line-mode 1)      ;; Enable highlight of the current line
   (global-auto-revert-mode 1)  ;; Enable global auto-revert mode to keep buffers up to date with their corresponding files.
   (global-font-lock-mode 1)
   (indent-tabs-mode -1)        ;; Disable the use of tabs for indentation (use spaces instead).
@@ -91,9 +91,9 @@
   (file-name-shadow-mode 1)    ;; Enable shadowing of filenames for clarity.
   (show-paren-mode 1)          ;; Show closing parens by default
   ;(tab-bar-mode 1)            ;; Workspace tabs at the top
-  ;(desktop-save-mode 1)       ;; Save last session
+  (desktop-save-mode 1)       ;; Save last session
   (modify-coding-system-alist 'file "" 'utf-8)  ;; Set default encoding for files to utf-8
-  ;(prefer-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8)
   ;(set-language-environment "UTF-8")
 
   ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
@@ -351,7 +351,9 @@
   (setq vertico-count 30)
   (setq vertico-scroll-margin 0)
   :init
-  (vertico-mode))
+  (vertico-mode)
+  :config
+  (setq vertico-count 25))
 
 
 ;;; Add context to results in the margins (file permissions, dates, help info, etc...)
@@ -479,33 +481,33 @@
   (setq consult-buffer-sources '(consult--source-file))  ; only show file-backed buffers in the list
   ;(setq consult-ripgrep-args "rg --null --line-buffered --color=always --max-columns=1000 --path-separator / --smart-case --no-heading --with-filename --line-number --search-zip")
 
-  (defun consult-list-all-project-files ()
-    "Show all project files immediately"
-    (interactive)
-    (consult--read (project-files (project-current t))
-                   :prompt "Project file: "
-                   :category 'file
-                   :state (consult--file-state)
-                   :require-match t))
+  ;(defun consult-project-files-with-preview ()
+  ;  "Show all project files immediately"
+  ;  (interactive)
+  ;  (consult--read (project-files (project-current t))
+  ;                 :prompt "Project file: "
+  ;                 :category 'file
+  ;                 :state (consult--file-state)
+  ;                 :require-match t))
 
-  ; Emulate telescope.vim by showing file live previews
+  ;; Emulate telescope.vim by showing file live previews
   ; TODO  Showing relative filenames doesn't work because consult can't open/preview the files...
   ;       Can I add the project root back on when I go to open the file?
-  ;(defun consult-list-all-project-files ()
-  ;  "Show all project files immediately with live preview"
-  ;  (interactive)
-  ;  (let* ((prj (project-current t))
-  ;         (files (project-files prj))
-  ;         (root (expand-file-name (project-root prj)))
-  ;         (relativefiles (mapcar (lambda (file)
-  ;                                  (string-remove-prefix root file))
-  ;                                files)))
-  ;    ;(consult--read (project-files (project-current t))
-  ;    (consult--read relativefiles
-  ;                   :prompt "Project file: "
-  ;                   :category 'file
-  ;                   :state (consult--file-state)
-  ;                   :require-match t)))
+  (defun consult-list-all-project-files ()
+    "Show all project files immediately with live preview"
+    (interactive)
+    (let* ((prj (project-current t))
+           (files (project-files prj))
+           (root (expand-file-name (project-root prj)))
+           (relativefiles (mapcar (lambda (file)
+                                    (string-remove-prefix root file))
+                                  files)))
+      ;(consult--read (project-files (project-current t))
+      (consult--read relativefiles
+                     :prompt "Project file: "
+                     :category 'file
+                     :state (consult--file-state)
+                     :require-match t)))
 
   (consult-customize
     consult-theme :preview-key '(:debunce 0.2 any)
@@ -712,12 +714,17 @@
 
 (with-eval-after-load 'evil
   (evil-set-leader 'normal (kbd "SPC"))
+
+  (evil-define-key '(normal motion visual insert) 'global
+    (kbd "C-s") '(lambda () (interactive) (save-buffer t))
+    (kbd "C-S") '(lambda () (interactive) (save-some-buffers t))
+    (kbd "C-+") 'text-scale-increase
+    (kbd "C--") 'text-scale-decrease)
+
   (evil-define-key '(normal motion visual) 'global
     ;"/" 'consult-line
     ";" 'evil-ex
-    ":" 'evil-repeat-find-char
-    (kbd "C-+") 'text-scale-increase
-    (kbd "C--") 'text-scale-decrease)
+    ":" 'evil-repeat-find-char)
 
   (evil-define-key 'normal 'global
     ; misc
@@ -759,9 +766,9 @@
     (kbd "<leader>bs") 'save-buffer
     (kbd "<leader>bS") '((lambda () (interactive) (save-some-buffers t))) ; :which-key "save all")
     (kbd "<leader>bH") 'buf-move-left
-    (kbd "<leader>bL") 'buf-move-right
     (kbd "<leader>bJ") 'buf-move-down
     (kbd "<leader>bK") 'buf-move-up
+    (kbd "<leader>bL") 'buf-move-right
     (kbd "<leader>bC") 'my-write-copy-to-file
 
     ; windows (prefix: w)
@@ -785,10 +792,15 @@
     ;(kbd "<leader>ps") '(lambda () (interactive) (counsel-projectile-ag "-s"))
     ;(kbd "<leader>pb") 'counsel-projectile-switch-to-buffer
 
-    ; toggles
-    ;"<leader>ts" 'neotree-toggle
-    (kbd "<leader>ts") 'treemacs
+    ; tabs
     (kbd "<leader>tw") 'whitespace-mode
+    (kbd "<leader>tn") 'tab-next
+    (kbd "<leader>tp") 'tab-previous
+    (kbd "<leader>tN") 'tab-new
+    (kbd "<leader>tq") 'tab-close
+
+    ;(kbd "C-0") 'neotree-toggle
+    ;(kbd "C-0") 'treemacs
 
     ; help
     (kbd "<leader>hp") 'describe-point
@@ -796,12 +808,14 @@
     (kbd "<leader>hv") 'describe-variable ;'counsel-describe-variable
     (kbd "<leader>hk") 'describe-key
 
-    ;; lsp symbol stuff
-    (kbd "<leader>s,") 'xref-find-definitions
-    (kbd "<leader>s.") 'xref-find-definitions-other-window
+    ;; eglot/lsp symbol stuff
+    ;(kbd "<leader>s,") 'xref-find-definitions
+    ;(kbd "<leader>s.") 'xref-find-definitions-other-window
     (kbd "<leader>so") 'xref-go-back
     (kbd "<leader>sr") 'xref-find-references
     (kbd "<leader>sc") 'xref-find-references-and-replace))
+    (kbd "<leader>-") 'xref-find-definitions
+    (kbd "<leader>_") 'xref-find-definitions-other-window
     ;(kbd "<leader>sp") 'lsp-ui-peek-find-definitions
     ;(kbd "<leader>s'") 'lsp-ui-peek-find-references
     ;(kbd "<leader>s,") 'lsp-ui-peek--goto-xref-other-window
