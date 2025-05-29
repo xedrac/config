@@ -1,8 +1,8 @@
 ;;; init.el   -*- lexical-binding: t; -*-
 
 ; Configure garbage collection to run less frequently
-(setq gc-cons-threshold 20000000     ; Not too big, but not too small
-      gc-cons-percentage 0.1)
+(setq gc-cons-threshold 20000000     ; 20 MB - not too big, not too small
+      gc-cons-percentage 0.1)        ; Or if 10% of RAM is being used, whichever hits first
 
 ;; Add "lisp" folder to the load path
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
@@ -121,9 +121,14 @@
   :config
   (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
   (load custom-file 'noerror 'nomessage)
-  (setq read-process-output-max (* 1024 1024 4) ;; Allow reading larger process outputs (improves lsp performance)
-        project-vc-extra-root-markers '("early-init.el")  ;; Make project.el always recognise emacs dir as a root project
-        switch-to-prev-buffer-skip 'skip-these-buffers)
+  (setq read-process-output-max (* 1024 1024 4)) ;; Allow reading larger process outputs (improves lsp performance)
+  (setq switch-to-prev-buffer-skip 'skip-these-buffers)
+
+  ;; skip over non-file buffers when cycling through buffers
+  (defun skip-these-buffers (_window buffer _bury-or-kill)
+    "Function for `switch-to-prev-buffer-skip'."
+    (string-match "\\*[^*]+\\*" (buffer-name buffer)))
+
   ;; Avoid littering the user's filesystem with backups
   ;(setq backup-by-copying t      ; don't clobber symlinks
   ;      backup-directory-alist (expand-file-name "saves/" user-emacs-directory)
@@ -131,11 +136,6 @@
   ;      kept-new-versions 6
   ;      kept-old-versions 2
   ;      version-control t)       ; use versioned backups
-
-  ;; skip over non-file buffers when cycling through buffers
-  (defun skip-these-buffers (_window buffer _bury-or-kill)
-    "Function for `switch-to-prev-buffer-skip'."
-    (string-match "\\*[^*]+\\*" (buffer-name buffer)))
 
   ;; Set default font
   (set-face-attribute 'default nil
@@ -189,6 +189,24 @@
 ;      (slot . 1))
 ;     )))
 
+;; Make tabs into project-specific workspaces
+(use-package tabspaces
+  :ensure (:host github :repo "mclear-tools/tabspaces")
+  :hook (after-init . tabspaces-mode)
+  :commands (tabspaces-switch-or-create-workspace
+             tabspaces-open-or-create-project-and-workspace)
+  :custom
+  (tabspaces-use-filtered-buffers-as-default t)
+  (tabspaces-default-tab "Default")
+  (tabspaces-remove-to-default t)
+  (tabspaces-include-buffers '("*scratch*"))
+  (tabspaces-initialize-project-with-todo t)
+  (tabspaces-todo-file-name "project-todo.org")
+  ;; sessions
+  (tabspaces-session t)
+  (tabspaces-session-auto-restore t)
+  (tab-bar-new-tab-choice "*scratch*"))
+
 
 ;; Built-in file manager
 (use-package dired
@@ -197,8 +215,8 @@
   (dired-listing-switches "-lah --group-directories-first")  ;; Display files in a human-readable format and group directories first.
   (dired-dwim-target t)                                      ;; Enable "do what I mean" for target directories.
   (dired-guess-shell-alist-user
-   '(("\\.\\(png\\|jpe?g\\|tiff\\)" "feh" "xdg-open" "open") ;; Open image files with `feh' or the default viewer.
-     ("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv" "xdg-open" "open") ;; Open audio and video files with `mpv'.
+   '(;("\\.\\(png\\|jpe?g\\|tiff\\)" "feh" "xdg-open" "open") ;; Open image files with `feh' or the default viewer.
+     ;("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv" "xdg-open" "open") ;; Open audio and video files with `mpv'.
      (".*" "open" "xdg-open")))                              ;; Default opening command for other files.
   (dired-kill-when-opening-new-dired-buffer t))               ;; Close the previous buffer when opening a new `dired' instance.
   ;:config
@@ -481,36 +499,36 @@
   (setq consult-buffer-sources '(consult--source-file))  ; only show file-backed buffers in the list
   ;(setq consult-ripgrep-args "rg --null --line-buffered --color=always --max-columns=1000 --path-separator / --smart-case --no-heading --with-filename --line-number --search-zip")
 
-  ;(defun consult-project-files-with-preview ()
-  ;  "Show all project files immediately"
-  ;  (interactive)
-  ;  (consult--read (project-files (project-current t))
-  ;                 :prompt "Project file: "
-  ;                 :category 'file
-  ;                 :state (consult--file-state)
-  ;                 :require-match t))
+  (defun consult-project-files-with-preview ()
+    "Show all project files immediately"
+    (interactive)
+    (consult--read (project-files (project-current t))
+                   :prompt "Project file: "
+                   :category 'file
+                   :state (consult--file-state)
+                   :require-match t))
 
   ;; Emulate telescope.vim by showing file live previews
   ; TODO  Showing relative filenames doesn't work because consult can't open/preview the files...
   ;       Can I add the project root back on when I go to open the file?
-  (defun consult-list-all-project-files ()
-    "Show all project files immediately with live preview"
-    (interactive)
-    (let* ((prj (project-current t))
-           (files (project-files prj))
-           (root (expand-file-name (project-root prj)))
-           (relativefiles (mapcar (lambda (file)
-                                    (string-remove-prefix root file))
-                                  files)))
-      ;(consult--read (project-files (project-current t))
-      (consult--read relativefiles
-                     :prompt "Project file: "
-                     :category 'file
-                     :state (consult--file-state)
-                     :require-match t)))
+  ;(defun consult-list-all-project-files ()
+  ;  "Show all project files immediately with live preview"
+  ;  (interactive)
+  ;  (let* ((prj (project-current t))
+  ;         (files (project-files prj))
+  ;         (root (expand-file-name (project-root prj)))
+  ;         (relativefiles (mapcar (lambda (file)
+  ;                                  (string-remove-prefix root file))
+  ;                                files)))
+  ;    ;(consult--read (project-files (project-current t))
+  ;    (consult--read relativefiles
+  ;                   :prompt "Project file: "
+  ;                   :category 'file
+  ;                   :state (consult--file-state)
+  ;                   :require-match t)))
 
   (consult-customize
-    consult-theme :preview-key '(:debunce 0.2 any)
+    consult-theme :preview-key '(:debunce 0.1 any)
     consult-ripgrep consult-git-grep consult-grep
     consult-bookmark consult-recent-file consult-xref
     consult--source-bookmark consult--source-file-register
@@ -620,42 +638,45 @@
 
 ;;; Project tree viewer
 ;;; TODO:  Just use dired instead...?
-;(use-package treemacs
-;  :ensure t
-;  ;:defer t
-;  :config
-;  (setq treemacs-filewatch-mode t
-;        treemacs-follow-mode t
-;        treemacs-tab-bar t
-;        ;treemacs-add-and-display-current-directory t
-;        ;treemacs-display-current-directory-exclusively t
-;        treemacs-display-current-project-exclusively t
-;        treemacs-project-follow-mode t
-;        treemacs-file-follow-delay 0.0
-;        treemacs-follow-after-init t
-;        treemacs-expand-after-init t
-;        treemacs-litter-directories '("/.venv" "/build" "/.cache" "/eln-cache")
-;        treemacs-show-cursor nil
-;        treemacs-wide-toggle-width 70
-;        treemacs-width 40
-;        treemacs-move-files-by-mouse-dragging t
-;        treemacs-persist-file (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
-;        treemacs-missing-project-action 'ask
-;        treemacs-find-workspace-method 'find-for-file-or-pick-first
-;        treemacs-collapse-dirs 3
-;        treemacs-project-follow-cleanup t
-;        treemacs-git-commit-diff-mode t
-;        treemacs-git-mode 'simple)
-;  (treemacs-resize-icons 18))
-;  ;:hook (treemacs-mode . (lambda () (set-face-background 'treemacs-window-background-face "#232326"))))
-;
-;(use-package treemacs-evil
-;  :after treemacs
-;  :ensure t)
-;
-;(use-package treemacs-magit
-;  :after '(treemacs magit)
-;  :ensure t)
+(use-package treemacs
+  :ensure t
+  ;:defer t
+  :bind
+  ;(kbd "C-0") 'neotree-toggle
+  ("C-0" . treemacs)
+  :config
+  (setq treemacs-filewatch-mode t
+        treemacs-follow-mode t
+        treemacs-tab-bar t
+        ;treemacs-add-and-display-current-directory t
+        ;treemacs-display-current-directory-exclusively t
+        treemacs-display-current-project-exclusively t
+        treemacs-project-follow-mode t
+        treemacs-file-follow-delay 0.0
+        treemacs-follow-after-init t
+        treemacs-expand-after-init t
+        treemacs-litter-directories '("/.venv" "/build" "/.cache" "/eln-cache")
+        treemacs-show-cursor nil
+        treemacs-wide-toggle-width 70
+        treemacs-width 40
+        treemacs-move-files-by-mouse-dragging t
+        treemacs-persist-file (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+        treemacs-missing-project-action 'ask
+        treemacs-find-workspace-method 'find-for-file-or-pick-first
+        treemacs-collapse-dirs 3
+        treemacs-project-follow-cleanup t
+        treemacs-git-commit-diff-mode t
+        treemacs-git-mode 'simple)
+  (treemacs-resize-icons 18))
+  ;:hook (treemacs-mode . (lambda () (set-face-background 'treemacs-window-background-face "#232326"))))
+
+(use-package treemacs-evil
+  :after treemacs
+  :ensure t)
+
+(use-package treemacs-magit
+  :after '(treemacs magit)
+  :ensure t)
 
 
 (use-package buffer-move
@@ -721,6 +742,7 @@
     (kbd "C-+") 'text-scale-increase
     (kbd "C--") 'text-scale-decrease)
 
+
   (evil-define-key '(normal motion visual) 'global
     ;"/" 'consult-line
     ";" 'evil-ex
@@ -749,7 +771,7 @@
     (kbd "<leader>-") 'consult-locate
     ;(kbd "<leader>ou" 'project-find-file ;'consult-fd
     (kbd "<leader>of") 'find-file
-    (kbd "<leader>ou") 'consult-list-all-project-files ;'consult-fd
+    (kbd "<leader>ou") 'consult-project-files-with-preview  ;'consult-list-all-project-files ;'consult-fd
     (kbd "<leader>oi") 'consult-ripgrep
     (kbd "<leader>og") 'consult-git-grep
     (kbd "<leader>oe") 'consult-buffer
@@ -783,7 +805,9 @@
     (kbd "<leader>w-") '(lambda () (interactive) (evil-window-decrease-height 10))
 
     ; project
-    (kbd "<leader>p") 'project-switch-project ;'counsel-projectile-switch-project
+    (kbd "<leader>p") 'project-switch-project
+    (kbd "<leader>P") 'tabspaces-open-or-create-project-and-workspace
+    ;(kbd "<leader>P") 'tabspaces-switch-or-create-workspace
     ;(kbd "<leader>pf") 'counsel-projectile-find-file
     ;(kbd "<leader>pd") 'counsel-projectile-find-dir
     ;(kbd "<leader>pg") 'counsel-projectile-grep
@@ -798,9 +822,6 @@
     (kbd "<leader>tp") 'tab-previous
     (kbd "<leader>tN") 'tab-new
     (kbd "<leader>tq") 'tab-close
-
-    ;(kbd "C-0") 'neotree-toggle
-    ;(kbd "C-0") 'treemacs
 
     ; help
     (kbd "<leader>hp") 'describe-point
