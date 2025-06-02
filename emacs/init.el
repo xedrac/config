@@ -36,7 +36,10 @@
   (pixel-scroll-precision-mode t)             ;; Enable precise pixel scrolling
   (pixel-scroll-precision-use-momentum nil)   ;; Disable momentum scrolling for pixel precision
   (ring-bell-function 'ignore)                ;; Disable bell sound
-  (split-width-threshold 300)                 ;; Prevent automatic window splitting if the window width exceeds 300 pixels
+  (split-width-threshold 200)                 ;; Minimum width (pixels?) needed for new automatic vsplit windows
+                                              ;; NOTE:  This threshold may need to change for different screen resolutions...
+                                              ;;        otherwise it may create new vsplits too aggressively or conservatively
+                                              ;; TODO:  Make this work on a percentage of screen width instead of pixels
   (switch-to-buffer-obey-display-actions t)   ;; Make buffer switching respect display actions
   (font-lock-maximum-decoration 4)            ;; for languages that don't use treesitter, make them colorful (e.g. Racket)
   (window-divider-default-right-width 1)      ;; width in pixels of vertical divider
@@ -79,7 +82,7 @@
   (set-face-background 'window-divider "#000000")
   (when scroll-bar-mode
     (scroll-bar-mode -1))      ;; Disable the scroll bar if it is active.
-  (global-hl-line-mode 1)      ;; Enable highlight of the current line
+  (global-hl-line-mode 0)      ;; Set to 1 to highlight cursor line
   (global-auto-revert-mode 1)  ;; Enable global auto-revert mode to keep buffers up to date with their corresponding files.
   (global-font-lock-mode 1)
   (indent-tabs-mode -1)        ;; Disable the use of tabs for indentation (use spaces instead).
@@ -155,39 +158,39 @@
 ;; are displayed for a more efficient workflow. The `window' use-package helps
 ;; streamline how various buffers are shown, especially those related to help,
 ;; diagnostics, and completion.
-;(use-package window
-;  :ensure nil       ;; This is built-in, no need to fetch it.
-;  :custom
-;  (display-buffer-alist
-;   '(
-;      ;("\\*.*e?shell\\*"
-;      ; (display-buffer-in-side-window)
-;      ; (window-height . 0.25)
-;      ; (side . bottom)
-;      ; (slot . -1))
-;
-;     ("\\*\\(Backtrace\\|Warnings\\|Compile-Log\\|[Hh]elp\\|Messages\\|Bookmark List\\|Ibuffer\\|Occur\\|eldoc.*\\)\\*"
-;      (display-buffer-in-side-window)
-;      (window-height . 0.25)
-;      (side . bottom)
-;      (slot . 0))
-;
-;     ;; Example configuration for the LSP help buffer,
-;     ;; keeps it always on bottom using 25% of the available space:
-;     ;("\\*\\(lsp-help\\)\\*"
-;     ; (display-buffer-in-side-window)
-;     ; (window-height . 0.25)
-;     ; (side . bottom)
-;     ; (slot . 0))
-;
-;     ;; Configuration for displaying various diagnostic buffers on
-;     ;; bottom 25%:
-;     ("\\*\\(Flymake diagnostics\\|xref\\|ivy\\|Swiper\\|Completions\\)"
-;      (display-buffer-in-side-window)
-;      (window-height . 0.25)
-;      (side . bottom)
-;      (slot . 1))
-;     )))
+(use-package window
+  :ensure nil       ;; This is built-in, no need to fetch it.
+  :custom
+  (display-buffer-alist
+   '(
+      ("\\*.*e?shell\\*|*terminal*"
+       (display-buffer-in-side-window)
+       (window-height . 0.35)
+       (side . bottom)
+       (slot . -1))
+
+     ;("\\*\\(Backtrace\\|Warnings\\|Compile-Log\\|[Hh]elp\\|Messages\\|Bookmark List\\|Ibuffer\\|Occur\\|eldoc.*\\)\\*"
+     ; (display-buffer-in-side-window)
+     ; (window-height . 0.25)
+     ; (side . bottom)
+     ; (slot . 0))
+
+     ;; Example configuration for the LSP help buffer,
+     ;; keeps it always on bottom using 25% of the available space:
+     ;("\\*\\(lsp-help\\)\\*"
+     ; (display-buffer-in-side-window)
+     ; (window-height . 0.25)
+     ; (side . bottom)
+     ; (slot . 0))
+
+     ;; Configuration for displaying various diagnostic buffers on
+     ;; bottom 25%:
+     ;("\\*\\(Flymake diagnostics\\|xref\\|ivy\\|Swiper\\|Completions\\)"
+     ; (display-buffer-in-side-window)
+     ; (window-height . 0.25)
+     ; (side . bottom)
+     ; (slot . 1))
+     )))
 
 ;; Make tabs into project-specific workspaces
 (use-package tabspaces
@@ -427,6 +430,7 @@
   ;(setq evil-search-module 'evil-search)
   :config
   (evil-mode 1)
+  (evil-set-undo-system 'undo-redo)
   (setq evil-emacs-state-cursor '("red" box))
   (setq evil-motion-state-cursor '("orange" box))
   (setq evil-normal-state-cursor '("green" box))
@@ -684,13 +688,10 @@
 
 
 ;;; Visualize the undo tree (vundo)
-;(use-package vundo
-;  :ensure t)
-
-;;; Different undo/redo behavior
-;(use-package undo-tree
-;  :ensure t
-;  :init (global-undo-tree-mode))
+(use-package vundo
+  :ensure t
+  :config
+  (setq vundo-glyph-alist vundo-unicode-symbols))
 
 
 ;; Indent code somewhat sanely when pasting
@@ -704,22 +705,6 @@
 (use-package parinfer-rust-mode
   :ensure (:host github :repo "justinbarclay/parinfer-rust-mode")
   :hook (emacs-lisp-mode lisp-mode))
-
-(use-package shell-pop
-  :ensure t
-  :custom
-  (shell-pop-default-directory "/Users/kyagi/git")
-  (shell-pop-shell-type (quote ("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell)))))
-  (shell-pop-term-shell "/bin/bash")
-  ;(shell-pop-universal-key "C-t")
-  (shell-pop-universal-key "<f8>")
-  (shell-pop-window-size 30)
-  (shell-pop-full-span t)
-  (shell-pop-window-position "bottom")
-  (shell-pop-autocd-to-working-dir t)
-  (shell-pop-restore-window-configuration t)
-  (shell-pop-cleanup-buffer-at-process-exit t))
-
 
 ;(use-package vterm
 ;  :ensure t)
@@ -737,10 +722,11 @@
   (evil-set-leader 'normal (kbd "SPC"))
 
   (evil-define-key '(normal motion visual insert) 'global
-    (kbd "C-s") '(lambda () (interactive) (save-buffer t))
-    (kbd "C-S") '(lambda () (interactive) (save-some-buffers t))
-    (kbd "C-+") 'text-scale-increase
-    (kbd "C--") 'text-scale-decrease)
+    (kbd "C-s")  '(lambda () (interactive) (save-buffer t))
+    (kbd "C-S")  '(lambda () (interactive) (save-some-buffers t))
+    (kbd "C-+")  'text-scale-increase
+    (kbd "C--")  'text-scale-decrease
+    (kbd "<f8>") 'toggle-terminal-window)
 
 
   (evil-define-key '(normal motion visual) 'global
@@ -755,7 +741,24 @@
     (kbd "<leader>,")   'consult-buffer
     ;(kbd "<leader>'")   '(lambda () (interactive) (term "/bin/bash"))
     ;(kbd "<leader>?")   'general-describe-keybindings
-    (kbd "<leader>`")   '(lambda () (interactive) (dired user-emacs-directory))
+
+    ;; Switch to init.el buffer if it's open, or open the file if it's not
+    (kbd "<leader>`")   '(lambda () (interactive)
+                           (let ((buffer (get-buffer "init.el")))
+                             (if buffer
+                                 (switch-to-buffer buffer)
+                               (find-file (expand-file-name "init.el" user-emacs-directory)))))
+
+
+    ;; Jump to the term buffer or exec a new term
+    (kbd "<leader>T")   '(lambda () (interactive)
+                           (let ((buffer (get-buffer "*terminal*")))
+                             (if buffer
+                                 (switch-to-buffer-other-window buffer)
+                               (term "/bin/bash"))))
+
+
+                                        ;(switch-to-buffer "init.el"))  ;(dired user-emacs-directory))
     (kbd "<leader>R")   '(lambda() (interactive) (load-file user-init-file))
     (kbd "<leader>eb")  'eval-buffer
     (kbd "<leader>es")  'eval-last-sexp
@@ -834,9 +837,9 @@
     ;(kbd "<leader>s.") 'xref-find-definitions-other-window
     (kbd "<leader>so") 'xref-go-back
     (kbd "<leader>sr") 'xref-find-references
-    (kbd "<leader>sc") 'xref-find-references-and-replace))
+    (kbd "<leader>sc") 'xref-find-references-and-replace
     (kbd "<leader>-") 'xref-find-definitions
-    (kbd "<leader>_") 'xref-find-definitions-other-window
+    (kbd "<leader>_") 'xref-find-definitions-other-window))
     ;(kbd "<leader>sp") 'lsp-ui-peek-find-definitions
     ;(kbd "<leader>s'") 'lsp-ui-peek-find-references
     ;(kbd "<leader>s,") 'lsp-ui-peek--goto-xref-other-window
@@ -883,7 +886,22 @@
   '(define-key term-raw-map (kbd "M-x") #'execute-extended-command))
 
 
-
+(defun toggle-terminal-window ()
+  "Toggle a terminal window between visiable and hidden"
+  (interactive)
+  (let* ((buffer "*terminal*")
+         (window (get-buffer-window buffer)))
+    (if window
+        (progn
+          (select-window window)
+          (delete-window window))
+          ;(switch-to-buffer (other-buffer)))
+      (progn
+        (select-window (split-window-below))
+        ;(switch-to-buffer (get-buffer-create buffer))
+        ;(unless (eq major-mode 'eshell-mode)
+        (unless (eq major-mode 'term-mode)
+          (term "/bin/bash"))))))
 
 
 (provide 'init)
