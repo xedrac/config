@@ -46,7 +46,6 @@
   (window-divider-default-bottom-width 1)     ;; width in pixels of horizontal divider
   (window-divider-default-places 'right-only)
   (require-final-newline nil)                 ;; don't require a newline to end of file
-  (show-trailing-whitespace t)                ;; show trailing whitespace
   (indent-tabs-mode nil)                      ;; indent with spaces by default
   (tab-always-indent 'complete)               ;; Make the TAB key complete text instead of just indenting.
   (tab-width 4)                               ;; Set the tab width to 4 spaces.
@@ -110,10 +109,9 @@
   ((text-mode . display-line-numbers-mode)
    (conf-mode . display-line-numbers-mode)
    (prog-mode . (lambda ()
+                  (setq show-trailing-whitespace t)
                   (display-line-numbers-mode 1)
-                 (add-hook 'before-save-hook
-                            (lambda ()
-                              (delete-trailing-whitespace) nil 'local))))
+                  (add-hook 'before-save-hook 'delete-trailing-whitespace nil 'local)))
    (window-setup . toggle-frame-fullscreen)
    (after-init . (lambda ()
                    (message "Emacs has fully loaded. This code runs after startup.")
@@ -360,7 +358,6 @@
                  (unless (member major-mode '(emacs-lisp-mode racket-mode lisp-mode scheme-mode common-lisp-mode))
                    (eglot-ensure)))))
 
-
 ;;; Completion ui in minibuffer
 (use-package vertico
   :ensure t
@@ -391,16 +388,16 @@
 (use-package corfu
   :ensure t
   :init
-  (global-corfu-mode)
+  ;(global-corfu-mode)
   (corfu-popupinfo-mode)
   (corfu-history-mode)
+  :hook (prog-mode . corfu-mode) ;shell-mode eshell-mode)
   :custom
-  (setq eglot-stay-out-of '(completion-at-point))
+  (eglot-stay-out-of '(completion-at-point))
   (corfu-auto t)                ;; Enable auto completion
   (corfu-auto-delay 0.2)        ;; seconds before completion popup is shown
   (corfu-auto-prefix 1)         ;; num chars required to show completions
-  (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
-  :hook (prog-mode shell-mode eshell-mode))
+  (corfu-cycle t))              ;; Enable cycling for `corfu-next/previous'
 
 ;;; Much nicer icons for corfu completions
 (use-package kind-icon
@@ -889,19 +886,19 @@
 (defun toggle-terminal-window ()
   "Toggle a terminal window between visiable and hidden"
   (interactive)
-  (let* ((buffer "*terminal*")
+  ;(let* ((buffer "*terminal*")
+  (let* ((buffer "*eshell*")
          (window (get-buffer-window buffer)))
     (if window
         (progn
           (select-window window)
           (delete-window window))
-          ;(switch-to-buffer (other-buffer)))
       (progn
         (select-window (split-window-below))
-        ;(switch-to-buffer (get-buffer-create buffer))
-        ;(unless (eq major-mode 'eshell-mode)
-        (unless (eq major-mode 'term-mode)
-          (term "/bin/bash"))))))
+        ;(unless (eq major-mode 'term-mode)
+        (unless (eq major-mode 'eshell-mode)
+          ;(term "/bin/bash"))))))
+          (eshell))))))
 
 
 (provide 'init)
