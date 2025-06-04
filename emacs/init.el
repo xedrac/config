@@ -355,7 +355,7 @@
   ;(add-to-list 'eglot-server-programs '((web-mode html-mode css-mode) . ("vscode-html-language-server" "--stdio")))
   :hook
   (prog-mode . (lambda ()
-                 (unless (member major-mode '(emacs-lisp-mode racket-mode lisp-mode scheme-mode common-lisp-mode))
+                 (unless (member major-mode '(emacs-lisp-mode racket-mode lisp-mode scheme-mode common-lisp-mode protobuf-mode))
                    (eglot-ensure)))))
 
 ;;; Completion ui in minibuffer
@@ -366,7 +366,7 @@
   :custom
   (vertico-cycle t)
   ;(vertico-resize t)
-  (setq vertico-count 30)
+  (setq vertico-count 25)
   (setq vertico-scroll-margin 0)
   :init
   (vertico-mode)
@@ -713,6 +713,31 @@
 ;;    ;; but this also seems to make it less useful
 ;;    (setq esup-depth 0)
 
+(defun cargo-process-build-and-focus ()
+  "Run cargo-process-build and focus the buffer."
+  (interactive)
+  (call-interactively 'cargo-process-build)
+  (when (get-buffer "*Cargo Build*")
+    (pop-to-buffer "*Cargo Build*")))
+
+(defun cargo-process-run-and-focus ()
+  "Run cargo-process-run and focus the buffer."
+  (interactive)
+  (call-interactively 'cargo-process-run)
+  (when (get-buffer "*Cargo Run*")
+    (pop-to-buffer "*Cargo Run*")))
+
+(defun cargo-process-test-and-focus ()
+  "Run cargo-process-test and focus the buffer."
+  (interactive)
+  (call-interactively 'cargo-process-test)
+  (when (get-buffer "*Cargo Test*")
+    (pop-to-buffer "*Cargo Test*")))
+
+(with-eval-after-load 'rust-ts-mode
+  (define-key rust-ts-mode-map (kbd "C-c c") 'cargo-process-build-and-focus)
+  (define-key rust-ts-mode-map (kbd "C-c r") 'cargo-process-run-and-focus)
+  (define-key rust-ts-mode-map (kbd "C-c t") 'cargo-process-test-and-focus))
 
 
 (with-eval-after-load 'evil
@@ -899,6 +924,11 @@
         (unless (eq major-mode 'eshell-mode)
           ;(term "/bin/bash"))))))
           (eshell))))))
+
+(defun kill-all-buffers ()
+  "Kill all open buffers."
+  (interactive)
+  (mapc 'kill-buffer (buffer-list)))
 
 
 (provide 'init)
