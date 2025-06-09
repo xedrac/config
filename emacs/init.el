@@ -93,8 +93,10 @@
   (file-name-shadow-mode 1)    ;; Enable shadowing of filenames for clarity.
   (show-paren-mode 1)          ;; Show closing parens by default
   ;(tab-bar-mode 1)            ;; Workspace tabs at the top
-  (desktop-save-mode 1)       ;; Save last session
+  (desktop-save-mode 1)        ;; Save last session
+  (desktop-restore-eager nil)  ;; Don't restore buffers early (use 'after-init-hook to ensure buffers aren't loaded before packages, which would otherwise bypass their hooks)
   (modify-coding-system-alist 'file "" 'utf-8)  ;; Set default encoding for files to utf-8
+
   (prefer-coding-system 'utf-8)
   ;(set-language-environment "UTF-8")
 
@@ -114,6 +116,7 @@
                   (add-hook 'before-save-hook 'delete-trailing-whitespace nil 'local)))
    (window-setup . toggle-frame-fullscreen)
    (after-init . (lambda ()
+                   (desktop-read)
                    (message "Emacs has fully loaded. This code runs after startup.")
                    ;; Insert a welcome message in the *scratch* buffer displaying loading time and activated packages.
                    (with-current-buffer (get-buffer-create "*scratch*")
@@ -568,6 +571,24 @@
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
 
+;;; git changes indicators per line in the gutter
+(use-package diff-hl
+  :defer t
+  :straight t
+  :ensure t
+  :hook
+  (find-file . (lambda ()
+                 (global-diff-hl-mode)           ;; Enable Diff-HL mode for all files.
+                 (diff-hl-flydiff-mode)          ;; Automatically refresh diffs.
+                 (diff-hl-margin-mode)))         ;; Show diff indicators in the margin.
+  :custom
+  (diff-hl-side 'left)                           ;; Set the side for diff indicators.
+  (diff-hl-margin-symbols-alist '((insert . "│") ;; Customize symbols for each change type.
+                                  (delete . "-")
+                                  (change . "│")
+                                  (unknown . "?")
+                                  (ignored . "i"))))
+
 (use-package transient
   :ensure (:host github :repo "magit/transient"))
 
@@ -810,6 +831,7 @@
     (kbd "<leader>bq") '((lambda () (interactive) (kill-buffer (current-buffer))))
     (kbd "<leader>bn") 'evil-next-buffer
     (kbd "<leader>bp") 'evil-prev-buffer
+    (kbd "<leader>br") 'mode-line-other-buffer   ; switch back to the most recently viewed buffer
     (kbd "<leader>bs") 'save-buffer
     (kbd "<leader>bS") '((lambda () (interactive) (save-some-buffers t))) ; :which-key "save all")
     (kbd "<leader>bH") 'buf-move-left
@@ -848,8 +870,18 @@
     (kbd "<leader>tN") 'tab-new
     (kbd "<leader>tq") 'tab-close
 
-    ; help
-    (kbd "<leader>hp") 'describe-point
+    ; hel
+    (kbd "<leader>hp") '(lambda () (interactive)
+                          (eldoc)
+                          (let ((b1 (get-buffer "*eldoc*"))
+                                (b2 (get-buffer "*eldoc for interactive*")))
+                            (if b2
+                                (switch-to-buffer-other-window b2)
+                              (if b1
+                                  (switch-to-buffer-other-window b1)
+                                (message "No eldoc buffer")))))
+
+    ;(kbd "<leader>hp") 'describe-point
     (kbd "<leader>hf") 'describe-function ;'counsel-describe-function
     (kbd "<leader>hv") 'describe-variable ;'counsel-describe-variable
     (kbd "<leader>hk") 'describe-key
