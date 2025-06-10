@@ -93,8 +93,7 @@
   (file-name-shadow-mode 1)    ;; Enable shadowing of filenames for clarity.
   (show-paren-mode 1)          ;; Show closing parens by default
   ;(tab-bar-mode 1)            ;; Workspace tabs at the top
-  (desktop-save-mode 1)        ;; Save last session
-  (desktop-restore-eager nil)  ;; Don't restore buffers early (use 'after-init-hook to ensure buffers aren't loaded before packages, which would otherwise bypass their hooks)
+  ;(desktop-save-mode 1)        ;; Save last session  (when using elpaca, this needs to be set just barely before desktop-read)
   (modify-coding-system-alist 'file "" 'utf-8)  ;; Set default encoding for files to utf-8
 
   (prefer-coding-system 'utf-8)
@@ -115,13 +114,13 @@
                   (display-line-numbers-mode 1)
                   (add-hook 'before-save-hook 'delete-trailing-whitespace nil 'local)))
    (window-setup . toggle-frame-fullscreen)
-   (after-init . (lambda ()
-                   (desktop-read)
-                   (message "Emacs has fully loaded. This code runs after startup.")
-                   ;; Insert a welcome message in the *scratch* buffer displaying loading time and activated packages.
-                   (with-current-buffer (get-buffer-create "*scratch*")
-                     (insert (format ";; Initialized in: %s"
-                               (emacs-init-time)))))))
+   ; after-init-hook  (elpaca uses its own after-init-hook because it runs asynchronously)
+   (elpaca-after-init-hook . (lambda ()
+                               (message "Emacs has fully loaded. This code runs after startup.")
+                               ;; Insert a welcome message in the *scratch* buffer displaying loading time and activated packages.
+                               (with-current-buffer (get-buffer-create "*scratch*")
+                                 (insert (format ";; Initialized in: %s"
+                                           (emacs-init-time)))))))
   :config
   (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
   (load custom-file 'noerror 'nomessage)
@@ -152,6 +151,21 @@
   (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?│))
   (setq-default frame-title-format '("%b"))                 ;; Make window title the buffer name
   (setq project-vc-extra-root-markers '("early-init.el")))  ;; Make project.el always recognise emacs dir as a root project
+
+
+;; Fix desktop save mode restore when using elpaca package manager
+(use-package desktop
+  :ensure nil
+  :demand t
+  :hook ((elpaca-after-init-hook . (lambda ()
+                                    (desktop-save-mode 1) ; Enable the mode right before
+                                    (let ((key "--no-desktop"))
+                                      (when (member key command-line-args)
+                                        (setq command-line-args (delete key command-line-args))
+                                        (desktop-save-mode 0)))
+                                    (when desktop-save-mode
+                                      (desktop-read)
+                                      (setq inhibit-startup-screen t))))))
 
 
 ;;; WINDOW
@@ -196,7 +210,7 @@
 ;; Make tabs into project-specific workspaces
 (use-package tabspaces
   :ensure (:host github :repo "mclear-tools/tabspaces")
-  :hook (after-init . tabspaces-mode)
+  :hook (elpaca-after-init-hook . tabspaces-mode)
   :commands (tabspaces-switch-or-create-workspace
              tabspaces-open-or-create-project-and-workspace)
   :custom
@@ -281,7 +295,7 @@
   :ensure nil
   :defer t
   :hook
-  (after-init . which-key-mode))
+  (elpaca-after-init-hook . which-key-mode))
 
 
 ;; Show recent commands/files at the top
@@ -357,9 +371,7 @@
   ;(add-to-list 'eglot-server-programs '((go-mode) . ("gopls")))
   ;(add-to-list 'eglot-server-programs '((web-mode html-mode css-mode) . ("vscode-html-language-server" "--stdio")))
   :hook
-  (prog-mode . (lambda ()
-                 (unless (member major-mode '(emacs-lisp-mode racket-mode lisp-mode scheme-mode common-lisp-mode protobuf-mode))
-                   (eglot-ensure)))))
+  ((rust-ts-mode python-ts-mode c-ts-mode c++-ts-mode haskell-ts-mode) . eglot-ensure))
 
 ;;; Completion ui in minibuffer
 (use-package vertico
@@ -624,7 +636,8 @@
 ;  :ensure)
 
 (use-package protobuf-mode
-  :ensure t)
+  :ensure t
+  :hook (protobuf-mode-hook . (lambda () (protobuf-mode))))
 
 (use-package cmake-mode
   :ensure t)
@@ -636,9 +649,9 @@
   :ensure t)
 
 ;; Format on save for rust files
-;(add-hook 'rust-ts-mode-hook
-;          (lambda ()
-;             (add-hook 'before-save-hook 'cargo-process-fmt nil 'local))) ; local save hook for rust
+(add-hook 'rust-ts-mode-hook
+          (lambda ()
+             (add-hook 'before-save-hook 'cargo-process-fmt nil 'local))) ; local save hook for rust
 
 
 ;; Make inactive windows slightly dimmer
@@ -781,7 +794,7 @@
     ; misc
     ;"SPC" 'execute-extended-command
     (kbd "<leader>.")   'project-find-file
-    (kbd "<leader>,")   'consult-buffer
+    (kbd "<leader>,")   'consult-project-buffer
     ;(kbd "<leader>'")   '(lambda () (interactive) (term "/bin/bash"))
     ;(kbd "<leader>?")   'general-describe-keybindings
 
@@ -823,12 +836,12 @@
     (kbd "<leader>oe") 'consult-buffer
 
     ; buffers
-    (kbd "<leader>ba") 'consult-buffer
+    (kbd "<leader>ba") 'switch-to-buffer
     (kbd "<leader>bb") 'consult-project-buffer
     (kbd "<leader>bl") 'list-buffers
     (kbd "<leader>bN") 'evil-buffer-new
-    (kbd "<leader>bd") '((lambda () (interactive) (kill-buffer (current-buffer))))  ; this works more reliably than 'kill-this-buffer
-    (kbd "<leader>bq") '((lambda () (interactive) (kill-buffer (current-buffer))))
+    (kbd "<leader>bd") '(lambda () (interactive) (kill-buffer (current-buffer)))  ; this works more reliably than 'kill-this-buffer
+    (kbd "<leader>bq") '(lambda () (interactive) (kill-buffer))
     (kbd "<leader>bn") 'evil-next-buffer
     (kbd "<leader>bp") 'evil-prev-buffer
     (kbd "<leader>br") 'mode-line-other-buffer   ; switch back to the most recently viewed buffer
