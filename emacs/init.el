@@ -167,6 +167,11 @@
                                       (desktop-read)
                                       (setq inhibit-startup-screen t))))))
 
+;; Make emacsclient start fullscreen
+(add-hook 'after-make-frame-functions
+          (lambda (frame)
+            (set-frame-parameter frame 'fullscreen 'fullboth)))
+
 
 ;;; WINDOW
 ;; This section configures window management in Emacs, enhancing the way buffers
@@ -206,6 +211,8 @@
      ; (side . bottom)
      ; (slot . 1))
      )))
+
+
 
 ;; Make tabs into project-specific workspaces
 (use-package tabspaces
