@@ -71,6 +71,7 @@
   (garbage-collection-messages t)             ;; Print a message in the messages buffer every time gc happens
   (save-place t)                              ;; Remember line when revisiting a file
   (save-place-file (expand-file-name "places" user-emacs-directory))
+  (tab-bar-show 1)             ;; Only show tab bar when there's more than one tab
 
   :init                        ;; Initialization settings that apply before the package is loaded.
   (tool-bar-mode -1)           ;; Disable the tool bar for a cleaner interface.
@@ -92,7 +93,7 @@
   (xterm-mouse-mode 1)         ;; Enable mouse support in terminal mode.
   (file-name-shadow-mode 1)    ;; Enable shadowing of filenames for clarity.
   (show-paren-mode 1)          ;; Show closing parens by default
-  ;(tab-bar-mode 1)            ;; Workspace tabs at the top
+  (tab-bar-mode t)             ;; Workspace tabs at the top
   ;(desktop-save-mode 1)        ;; Save last session  (when using elpaca, this needs to be set just barely before desktop-read)
   (modify-coding-system-alist 'file "" 'utf-8)  ;; Set default encoding for files to utf-8
 
@@ -153,19 +154,164 @@
   (setq project-vc-extra-root-markers '("early-init.el")))  ;; Make project.el always recognise emacs dir as a root project
 
 
+(use-package bufferlo
+  :ensure t
+  :init
+  (setq bufferlo-menu-bar-show t)
+  (setq bufferlo-menu-bar-list-buffers 'ibuffer)
+  (setq bufferlo-prefer-local-buffers 'tabs)
+  (setq bufferlo-ibuffer-bind-local-buffer-filter t)
+  (setq bufferlo-ibuffer-bind-keys t)
+  :config
+  (setq bufferlo-delete-frame-kill-buffers-prompt t)
+  (setq bufferlo-bookmark-tab-replace-policy 'new)
+  (setq bufferlo-bookmark-tab-duplicate-policy 'prompt)
+  (setq bufferlo-mode-line-tab-prefix "Ⓣ")
+  (setq bufferlo-mode-line-left-prefix nil)
+  (setq bufferlo-mode-line-right-suffix nil)
+  (setq switch-to-prev-buffer-skip-regexp
+        (concat "\\` *"
+                "\\(\\*\\(" ; earmuffs
+                (mapconcat #'identity
+                           '("Messages"
+                             "Buffer List"
+                             "Ibuffer"
+                             "Local Buffer List" ; bufferlo
+                             "scratch"
+                             "Occur"
+                             "Completions"
+                             "Help"
+                             "Warnings"
+                             "Apropos"
+                             "Bookmark List"
+                             "Async-native-compile-log"
+                             "Flymake log"
+                             "ruff-format errors"
+                             "vc-diff")
+                           "\\|")
+                "\\)\\*\\)"
+                "\\|" (rx "*" (1+ anything) " Ibuffer*")
+                "\\|" (rx "*helpful " (1+ anything) "*")
+                "\\|" (rx "*tramp" (1+ anything) "*")
+                "\\|" (rx "magit" (* anything) ": " (1+ anything))
+                "\\'"))
+  (setq bufferlo-kill-buffers-prompt t)
+  (setq bufferlo-kill-modified-buffers-policy 'retain-modified-kill-without-file-name) ; nil 'retain-modified 'retain-modified-kill-without-file-name 'kill-modified
+  (setq bufferlo-bookmark-inhibit-bookmark-point t)
+  (setq bufferlo-delete-frame-kill-buffers-prompt t)
+  (setq bufferlo-bookmark-frame-save-on-delete 'when-bookmarked)
+  (setq bufferlo-bookmark-tab-save-on-close 'when-bookmarked)
+  (setq bufferlo-close-tab-kill-buffers-prompt t)
+  (setq bufferlo-bookmark-frame-load-make-frame 'restore-geometry)
+  (setq bufferlo-bookmark-frame-load-policy 'prompt)
+  (setq bufferlo-bookmark-frame-duplicate-policy 'prompt)
+  (setq bufferlo-bookmark-tab-replace-policy 'new)
+  (setq bufferlo-bookmark-tab-duplicate-policy 'prompt)
+  (setq bufferlo-bookmark-tab-in-bookmarked-frame-policy 'prompt)
+  (setq bufferlo-bookmark-tab-failed-buffer-policy 'placeholder)
+  (setq bufferlo-bookmarks-save-duplicates-policy 'prompt)
+  (setq bufferlo-bookmarks-save-frame-policy 'all)
+  (setq bufferlo-bookmarks-load-tabs-make-frame t)
+  (setq bufferlo-bookmarks-save-at-emacs-exit 'all)
+  (setq bufferlo-bookmarks-load-at-emacs-startup 'pred)
+  (setq bufferlo-bookmarks-load-at-emacs-startup-tabs-make-frame nil)
+  (setopt bufferlo-bookmarks-auto-save-interval (* 60 5)) ; 5 minutes
+  (setq bufferlo-bookmarks-auto-save-messages 'saved)
+  (setq bufferlo-set-restore-geometry-policy 'all)
+  (setq bufferlo-set-restore-tabs-reuse-init-frame 'reuse) ; nil 'reuse 'reuse-reset-geometry
+  (setq bufferlo-set-restore-ignore-already-active 'prompt) ; nil 'prompt 'ignore
+  (setq bufferlo-frameset-restore-geometry 'bufferlo)
+  (setq bufferlo-frame-geometry-function #'bufferlo-frame-geometry-default)
+  (setq bufferlo-frame-sleep-for 0.3)
+
+  (setq bookmark-bmenu-type-column-width 12) ; supported in Emacs 31 (innocuous on earlier versions)
+
+  (setq bufferlo-bookmark-buffers-exclude-filters
+        (list
+         (rx bos " " (1+ anything)) ; ignores "invisible" buffers; e.g., " *Minibuf...", " markdown-code-fontification:..."
+         (rx bos "*" (1+ anything) "*") ; ignores "special" buffers; e.g;, "*Messages*", "*scratch*", "*occur*"
+         ))
+
+  (setq bufferlo-bookmark-buffers-include-filters
+        (list
+         (rx bos "*shell*") ; comment out shells if you do not have bookmark support
+         (rx bos "*" (1+ anything) "-shell*") ; project.el shell buffers
+         (rx bos "*eshell*")
+         (rx bos "*" (1+ anything) "-eshell*") ; project.el eshell buffers
+         ))
+
+  (defun my/bufferlo-bookmarks-save-p (bookmark-name)
+    (string-match-p (rx "=as") bookmark-name))
+  (setq bufferlo-bookmarks-save-predicate-functions nil) ; clear the save-all predicate
+  (add-hook 'bufferlo-bookmarks-save-predicate-functions #'my/bufferlo-bookmarks-save-p)
+
+  (defun my/bufferlo-bookmarks-load-p (bookmark-name)
+    (string-match-p (rx "=al") bookmark-name))
+  (add-hook 'bufferlo-bookmarks-load-predicate-functions #'my/bufferlo-bookmarks-load-p)
+
+  (defvar my:bufferlo-consult--source-local-buffers
+    (list :name "Bufferlo Local Buffers"
+          :narrow   ?l
+          :category 'buffer
+          :face     'consult-buffer
+          :history  'buffer-name-history
+          :state    #'consult--buffer-state
+          :default  t
+          :items    (lambda () (consult--buffer-query
+                                :predicate #'bufferlo-local-buffer-p
+                                :sort 'visibility
+                                :as #'buffer-name)))
+    "Local Bufferlo buffer candidate source for `consult-buffer'.")
+
+  (defvar my:bufferlo-consult--source-other-buffers
+    (list :name "Bufferlo Other Buffers"
+          :narrow   ?o
+          :category 'buffer
+          :face     'consult-buffer
+          :history  'buffer-name-history
+          :state    #'consult--buffer-state
+          :items    (lambda () (consult--buffer-query
+                                :predicate #'bufferlo-non-local-buffer-p
+                                :sort 'visibility
+                                :as #'buffer-name)))
+    "Non-local Bufferlo buffer candidate source for `consult-buffer'.")
+
+  (defvar my:bufferlo-consult--source-all-buffers
+    (list :name "Bufferlo All Buffers"
+          :narrow   ?a
+          :hidden   t
+          :category 'buffer
+          :face     'consult-buffer
+          :history  'buffer-name-history
+          :state    #'consult--buffer-state
+          :items    (lambda () (consult--buffer-query
+                                :sort 'visibility
+                                :as #'buffer-name)))
+    "All Bufferlo buffer candidate source for `consult-buffer'.")
+
+  ;; add in the reverse order of display preference
+  (add-to-list 'consult-buffer-sources 'my:bufferlo-consult--source-all-buffers)
+  (add-to-list 'consult-buffer-sources 'my:bufferlo-consult--source-other-buffers)
+  (add-to-list 'consult-buffer-sources 'my:bufferlo-consult--source-local-buffers)
+
+  (bufferlo-mode)
+  (bufferlo-anywhere-mode))
+
+
+
 ;; Fix desktop save mode restore when using elpaca package manager
-(use-package desktop
-  :ensure nil
-  :demand t
-  :hook ((elpaca-after-init-hook . (lambda ()
-                                    (desktop-save-mode 1) ; Enable the mode right before
-                                    (let ((key "--no-desktop"))
-                                      (when (member key command-line-args)
-                                        (setq command-line-args (delete key command-line-args))
-                                        (desktop-save-mode 0)))
-                                    (when desktop-save-mode
-                                      (desktop-read)
-                                      (setq inhibit-startup-screen t))))))
+;(use-package desktop
+;  :ensure nil
+;  :demand t
+;  :hook ((elpaca-after-init-hook . (lambda ()
+;                                    (desktop-save-mode 1) ; Enable the mode right before
+;                                    (let ((key "--no-desktop"))
+;                                      (when (member key command-line-args)
+;                                        (setq command-line-args (delete key command-line-args))
+;                                        (desktop-save-mode 0)))
+;                                    (when desktop-save-mode
+;                                      (desktop-read)
+;                                      (setq inhibit-startup-screen t))))))
 
 ;; Make emacsclient start fullscreen
 (add-hook 'after-make-frame-functions
@@ -210,27 +356,25 @@
      ; (window-height . 0.25)
      ; (side . bottom)
      ; (slot . 1))
-     )))
-
-
+      )))
 
 ;; Make tabs into project-specific workspaces
-(use-package tabspaces
-  :ensure (:host github :repo "mclear-tools/tabspaces")
-  :hook (elpaca-after-init-hook . tabspaces-mode)
-  :commands (tabspaces-switch-or-create-workspace
-             tabspaces-open-or-create-project-and-workspace)
-  :custom
-  (tabspaces-use-filtered-buffers-as-default t)
-  (tabspaces-default-tab "Default")
-  (tabspaces-remove-to-default t)
-  (tabspaces-include-buffers '("*scratch*"))
-  (tabspaces-initialize-project-with-todo t)
-  (tabspaces-todo-file-name "project-todo.org")
-  ;; sessions
-  (tabspaces-session t)
-  (tabspaces-session-auto-restore t)
-  (tab-bar-new-tab-choice "*scratch*"))
+;(use-package tabspaces
+;  :ensure (:host github :repo "mclear-tools/tabspaces")
+;  :hook (elpaca-after-init-hook . tabspaces-mode)
+;  :commands (tabspaces-switch-or-create-workspace
+;             tabspaces-open-or-create-project-and-workspace)
+;  :custom
+;  (tabspaces-use-filtered-buffers-as-default t)
+;  (tabspaces-default-tab "Default")
+;  (tabspaces-remove-to-default t)
+;  (tabspaces-include-buffers '("*scratch*"))
+;  (tabspaces-initialize-project-with-todo t)
+;  (tabspaces-todo-file-name "project-todo.org")
+;  ;; sessions
+;  (tabspaces-session t)
+;  (tabspaces-session-auto-restore t)
+;  (tab-bar-new-tab-choice "*scratch*"))
 
 
 ;; Built-in file manager
@@ -570,7 +714,8 @@
 ;;; Contextual actions for vertico (delete, rename, etc...)
 (use-package embark
   :ensure t
-  :bind (("C-c" . embark-act)         ;; pick some comfortable binding
+  :bind (("C-." . embark-act)         ;; pick some comfortable binding
+         ("C-," . embark-dwim)
          ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
 
   :init
@@ -656,9 +801,9 @@
   :ensure t)
 
 ;; Format on save for rust files
-(add-hook 'rust-ts-mode-hook
-          (lambda ()
-             (add-hook 'before-save-hook 'cargo-process-fmt nil 'local))) ; local save hook for rust
+;(add-hook 'rust-ts-mode-hook
+;          (lambda ()
+;             (add-hook 'before-save-hook 'cargo-process-fmt nil 'local))) ; local save hook for rust
 
 
 ;; Make inactive windows slightly dimmer
@@ -800,8 +945,8 @@
   (evil-define-key 'normal 'global
     ; misc
     ;"SPC" 'execute-extended-command
-    (kbd "<leader>.")   'project-find-file
-    (kbd "<leader>,")   'consult-project-buffer
+    (kbd "<leader>.")   'consult-project-buffer   ;'project-find-file
+    ;(kbd "<leader>,")   'consult-project-buffer
     ;(kbd "<leader>'")   '(lambda () (interactive) (term "/bin/bash"))
     ;(kbd "<leader>?")   'general-describe-keybindings
 
@@ -837,7 +982,7 @@
     (kbd "<leader>-") 'consult-locate
     ;(kbd "<leader>ou" 'project-find-file ;'consult-fd
     (kbd "<leader>of") 'find-file
-    (kbd "<leader>ou") 'consult-project-files-with-preview  ;'consult-list-all-project-files ;'consult-fd
+    (kbd "<leader>ou") 'consult-buffer   ;'consult-project-files-with-preview  ;'consult-list-all-project-files ;'consult-fd
     (kbd "<leader>oi") 'consult-ripgrep
     (kbd "<leader>og") 'consult-git-grep
     (kbd "<leader>oe") 'consult-buffer
@@ -849,8 +994,8 @@
     (kbd "<leader>bN") 'evil-buffer-new
     (kbd "<leader>bd") '(lambda () (interactive) (kill-buffer (current-buffer)))  ; this works more reliably than 'kill-this-buffer
     (kbd "<leader>bq") '(lambda () (interactive) (kill-buffer))
-    (kbd "<leader>bn") 'evil-next-buffer
-    (kbd "<leader>bp") 'evil-prev-buffer
+    (kbd "<leader>bn") 'next-buffer ;'switch-to-next-buffer  ;'evil-next-buffer
+    (kbd "<leader>bp") 'previous-buffer ;'switch-to-prev-buffer  ;'evil-prev-buffer
     (kbd "<leader>br") 'mode-line-other-buffer   ; switch back to the most recently viewed buffer
     (kbd "<leader>bs") 'save-buffer
     (kbd "<leader>bS") '((lambda () (interactive) (save-some-buffers t))) ; :which-key "save all")
@@ -873,7 +1018,7 @@
 
     ; project
     (kbd "<leader>p") 'project-switch-project
-    (kbd "<leader>P") 'tabspaces-open-or-create-project-and-workspace
+    ;(kbd "<leader>P") 'tabspaces-open-or-create-project-and-workspace
     ;(kbd "<leader>P") 'tabspaces-switch-or-create-workspace
     ;(kbd "<leader>pf") 'counsel-projectile-find-file
     ;(kbd "<leader>pd") 'counsel-projectile-find-dir
@@ -976,6 +1121,29 @@
         (unless (eq major-mode 'eshell-mode)
           ;(term "/bin/bash"))))))
           (eshell))))))
+
+
+;(defun my-bufferlo-next-buffer ()
+;  "Switch to the next buffer in the local buffer list of a tab or frame."
+;  (interactive)
+;  (let ((local-buffers (bufferlo--frame-local-buffers)))
+;    (when local-buffers
+;      (let* ((current (current-buffer))
+;             (next (cadr (member current local-buffers))))
+;        (switch-to-buffer (or next (car local-buffers)))))))
+;
+;(defun my-bufferlo-prev-buffer ()
+;  "Switch to the previous buffer in the local buffer list of a tab or frame."
+;  (interactive)
+;  (let ((local-buffers (bufferlo--frame-local-buffers)))
+;    (when local-buffers
+;      (let* ((current (current-buffer))
+;             (pos (cl-position current local-buffers))
+;             (prev (if pos
+;                       (nth (mod (- pos 1) (length local-buffers)) local-buffers)
+;                     (car (last local-buffers)))))
+;        (switch-to-buffer prev)))))
+
 
 (defun kill-all-buffers ()
   "Kill all open buffers."
