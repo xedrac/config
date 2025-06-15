@@ -934,7 +934,7 @@
     (kbd "C-S")  '(lambda () (interactive) (save-some-buffers t))
     (kbd "C-+")  'text-scale-increase
     (kbd "C--")  'text-scale-decrease
-    (kbd "<f8>") 'toggle-terminal-window)
+    (kbd "<f8>") 'my/toggle-terminal-window)
 
 
   (evil-define-key '(normal motion visual) 'global
@@ -994,8 +994,8 @@
     (kbd "<leader>bN") 'evil-buffer-new
     (kbd "<leader>bd") '(lambda () (interactive) (kill-buffer (current-buffer)))  ; this works more reliably than 'kill-this-buffer
     (kbd "<leader>bq") '(lambda () (interactive) (kill-buffer))
-    (kbd "<leader>bn") 'next-buffer ;'switch-to-next-buffer  ;'evil-next-buffer
-    (kbd "<leader>bp") 'previous-buffer ;'switch-to-prev-buffer  ;'evil-prev-buffer
+    (kbd "<leader>bn") 'next-buffer  ;'evil-next-buffer
+    (kbd "<leader>bp") 'previous-buffer  ;'evil-prev-buffer
     (kbd "<leader>br") 'mode-line-other-buffer   ; switch back to the most recently viewed buffer
     (kbd "<leader>bs") 'save-buffer
     (kbd "<leader>bS") '((lambda () (interactive) (save-some-buffers t))) ; :which-key "save all")
@@ -1032,7 +1032,7 @@
     (kbd "<leader>tw") 'whitespace-mode
     (kbd "<leader>tn") 'tab-next
     (kbd "<leader>tp") 'tab-previous
-    (kbd "<leader>tN") 'tab-new
+    (kbd "<leader>tN") 'my/new-project-tab  ;tab-new
     (kbd "<leader>tq") 'tab-close
 
     ; hel
@@ -1104,8 +1104,22 @@
 (eval-after-load 'term
   '(define-key term-raw-map (kbd "M-x") #'execute-extended-command))
 
+(defun my/new-project-tab ()
+  "Create a new tab for a project, such that emacs restricts certain commands to only see that's project's buffers."
+  (interactive)
+  (tab-bar-new-tab)
+  (call-interactively #'project-switch-project)
+  ;(call-interactively #'project-find-file)
+  (unless bufferlo-mode
+    (bufferlo-mode 1))
+  (bufferlo-isolate-project)
+  (let ((project-name (file-name-nondirectory
+                       (directory-file-name
+                        (project-root (project-current))))))
+    (tab-bar-rename-tab project-name)))
 
-(defun toggle-terminal-window ()
+
+(defun my/toggle-terminal-window ()
   "Toggle a terminal window between visiable and hidden"
   (interactive)
   ;(let* ((buffer "*terminal*")
@@ -1121,28 +1135,6 @@
         (unless (eq major-mode 'eshell-mode)
           ;(term "/bin/bash"))))))
           (eshell))))))
-
-
-;(defun my-bufferlo-next-buffer ()
-;  "Switch to the next buffer in the local buffer list of a tab or frame."
-;  (interactive)
-;  (let ((local-buffers (bufferlo--frame-local-buffers)))
-;    (when local-buffers
-;      (let* ((current (current-buffer))
-;             (next (cadr (member current local-buffers))))
-;        (switch-to-buffer (or next (car local-buffers)))))))
-;
-;(defun my-bufferlo-prev-buffer ()
-;  "Switch to the previous buffer in the local buffer list of a tab or frame."
-;  (interactive)
-;  (let ((local-buffers (bufferlo--frame-local-buffers)))
-;    (when local-buffers
-;      (let* ((current (current-buffer))
-;             (pos (cl-position current local-buffers))
-;             (prev (if pos
-;                       (nth (mod (- pos 1) (length local-buffers)) local-buffers)
-;                     (car (last local-buffers)))))
-;        (switch-to-buffer prev)))))
 
 
 (defun kill-all-buffers ()
