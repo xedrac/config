@@ -151,7 +151,7 @@
   ;; Makes Emacs vertical divisor the symbol │ instead of |.
   (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?│))
   (setq-default frame-title-format '("%b"))                 ;; Make window title the buffer name
-  (setq project-vc-extra-root-markers '("early-init.el")))  ;; Make project.el always recognise emacs dir as a root project
+  (setq project-vc-extra-root-markers '("early-init.el" "Cargo.toml")))  ;; Make project.el always recognise emacs dir as a root project
 
 
 (use-package bufferlo
@@ -945,8 +945,8 @@
   (evil-define-key 'normal 'global
     ; misc
     ;"SPC" 'execute-extended-command
-    (kbd "<leader>.")   'consult-project-buffer   ;'project-find-file
-    ;(kbd "<leader>,")   'consult-project-buffer
+    (kbd "<leader>.")   'project-find-file
+    (kbd "<leader>,")   'consult-project-buffer
     ;(kbd "<leader>'")   '(lambda () (interactive) (term "/bin/bash"))
     ;(kbd "<leader>?")   'general-describe-keybindings
 
@@ -982,7 +982,7 @@
     (kbd "<leader>-") 'consult-locate
     ;(kbd "<leader>ou" 'project-find-file ;'consult-fd
     (kbd "<leader>of") 'find-file
-    (kbd "<leader>ou") 'consult-buffer   ;'consult-project-files-with-preview  ;'consult-list-all-project-files ;'consult-fd
+    (kbd "<leader>ou") 'consult-project-files-with-preview  ;'consult-list-all-project-files ;'consult-fd
     (kbd "<leader>oi") 'consult-ripgrep
     (kbd "<leader>og") 'consult-git-grep
     (kbd "<leader>oe") 'consult-buffer
