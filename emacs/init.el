@@ -734,7 +734,22 @@
   :ensure t   ; only need to install it, embark loads it after consult if found
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
+(use-package org
+  :ensure t)
 
+(use-package org-modern
+  :ensure t
+  :after 'org
+  :config
+  (setq org-hide-emphasis-markers t
+        org-pretty-entities t
+        org-agenda-tags-column 0
+        org-ellipsis "…"))
+
+(add-hook 'org-mode-hook #'org-modern-mode)
+(add-hook 'org-agenda-finalize-hook #'org-modern-agenda)
+
+;;
 ;;; git changes indicators per line in the gutter
 (use-package diff-hl
   :defer t
@@ -787,9 +802,11 @@
 ;(use-package cider
 ;  :ensure)
 
-(use-package protobuf-mode
-  :ensure t
-  :hook (protobuf-mode-hook . (lambda () (protobuf-mode))))
+;(use-package protobuf-mode
+;  :ensure t
+;  :hook (protobuf-mode-hook . (lambda () (protobuf-mode))))
+(use-package protobuf-ts-mode
+  :ensure t)
 
 (use-package cmake-mode
   :ensure t)
@@ -888,6 +905,45 @@
 (use-package parinfer-rust-mode
   :ensure (:host github :repo "justinbarclay/parinfer-rust-mode")
   :hook (emacs-lisp-mode lisp-mode))
+
+
+(use-package gptel
+  :ensure t
+  :bind (("C-c C-a r" . gptel-add)
+         ("C-c C-a f" . gptel-add-file))
+  :config
+  (setq gptel-default-mode 'org-mode
+        gptel-model 'qwen3-coder:latest
+        ;gptel-model 'mistral:latest
+        gptel-backend (gptel-make-ollama "Ollama"
+                        :host "192.168.7.101:1234"
+                        :stream t
+                        ;:models '(codestral:latest)
+                        ;:models '(mistral:latest)
+                        :models '(qwen3-coder:latest)))
+  :hook (gptel-mode . (lambda ()
+                        (interactive)
+                        (switch-to-buffer-other-window "*Ollama*")
+                        (setq-local gptel-auto-scroll t))))
+
+  ;;; Make sure it scrolls to bottom when content changes
+  ;(add-hook 'gptel-response-hook
+  ;        (lambda ()
+  ;          (when (eq (current-buffer) (get-buffer "*Ollama*"))
+  ;            (goto-char (point-max))
+  ;            (recenter -1)))))
+
+;(use-package aidermacs
+;  :bind (("C-c a" . aidermacs-transient-menu))
+;  :config
+;  ; Set API_KEY in .bashrc, that will automatically picked up by aider or in elisp
+;  (setenv "ANTHROPIC_API_KEY" "sk-...")
+;  ; defun my-get-openrouter-api-key yourself elsewhere for security reasons
+;  (setenv "OPENROUTER_API_KEY" (my-get-openrouter-api-key))
+;  :custom
+;  ; See the Configuration section below
+;  (aidermacs-default-chat-mode 'architect)
+;  (aidermacs-default-model "sonnet"))
 
 ;(use-package vterm
 ;  :ensure t)
@@ -1016,6 +1072,9 @@
     (kbd "<leader>w+") '(lambda () (interactive) (evil-window-increase-height 10))
     (kbd "<leader>w-") '(lambda () (interactive) (evil-window-decrease-height 10))
 
+    ; frames/monitors (prefix: m)
+    (kbd "<leader>mn") 'other-frame
+
     ; project
     (kbd "<leader>p") 'project-switch-project
     ;(kbd "<leader>P") 'tabspaces-open-or-create-project-and-workspace
@@ -1035,16 +1094,19 @@
     (kbd "<leader>tN") 'my/new-project-tab  ;tab-new
     (kbd "<leader>tq") 'tab-close
 
-    ; hel
+    ; AI
+    (kbd "<leader>l") '(lambda () (interactive) (gptel "*Ollama*"))
+
+    ; help
     (kbd "<leader>hp") '(lambda () (interactive)
-                          (eldoc)
-                          (let ((b1 (get-buffer "*eldoc*"))
-                                (b2 (get-buffer "*eldoc for interactive*")))
-                            (if b2
-                                (switch-to-buffer-other-window b2)
-                              (if b1
-                                  (switch-to-buffer-other-window b1)
-                                (message "No eldoc buffer")))))
+                          (eldoc))
+                          ;(let ((b1 (get-buffer "*eldoc*"))
+                          ;      (b2 (get-buffer "*eldoc for interactive*")))
+                          ;  (if b2
+                          ;      (switch-to-buffer-other-window b2)
+                          ;    (if b1
+                          ;        (switch-to-buffer-other-window b1)
+                          ;      (message "No eldoc buffer")))))
 
     ;(kbd "<leader>hp") 'describe-point
     (kbd "<leader>hf") 'describe-function ;'counsel-describe-function

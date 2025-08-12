@@ -7,6 +7,7 @@
  '(consult-fd-args "fd --color=never --type f --hidden --exclude \\#*\\#")
  '(consult-preview-allowed-hooks '(save-place-find-file-hook global-font-lock-mode))
  '(initial-frame-alist '((fullscreen . maximized)))
+ '(org-hide-emphasis-markers t)
  '(save-place-mode t nil nil "Customized with use-package emacs")
  '(tab-bar-auto-width-max '((150) 20))
  '(tab-bar-close-button-show nil)
@@ -20,9 +21,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- ;'(neo-dir-link-face ((t (:foreground "SteelBlue1" :width narrow :family "Source Code Pro" :height 140))))
- ;'(neo-file-link-face ((t (:foreground "light gray" :width narrow :family "Source Code Pro" :height 140))))
- ;'(neo-root-dir-face ((t (:foreground "sandy brown" :weight bold :family "Source Code Pro" :height 140))))
  '(tab-bar ((t (:background "#2C323C" :height 1.3))))
  '(telephone-line-evil-insert ((t (:inherit telephone-line-evil :background "#61afef" :foreground "#000000"))))
  '(telephone-line-evil-normal ((t (:inherit telephone-line-evil :background "#98c379" :foreground "#000000"))))
