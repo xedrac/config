@@ -519,10 +519,11 @@
   (add-to-list 'eglot-server-programs '((haskell-mode haskell-ts-mode) . ("haskell-language-server-wrapper" "--lsp")))
   ;(add-to-list 'eglot-server-programs '((js-mode typescript-mode ts-mode) . ("typescript-language-server" "--stdio")))
   ;(add-to-list 'eglot-server-programs '((java-mode java-ts-mode) . ("jdtls")))
-  ;(add-to-list 'eglot-server-programs '((go-mode) . ("gopls")))
+  (add-to-list 'eglot-server-programs '((go-mode go-ts-mode) . ("gopls")))
+  (add-to-list 'eglot-server-programs '((zig-mode zig-ts-mode) . ("zls")))
   ;(add-to-list 'eglot-server-programs '((web-mode html-mode css-mode) . ("vscode-html-language-server" "--stdio")))
   :hook
-  ((rust-ts-mode python-ts-mode c-ts-mode c++-ts-mode haskell-ts-mode) . eglot-ensure))
+  ((rust-ts-mode python-ts-mode c-ts-mode c++-ts-mode haskell-ts-mode go-ts-mode zig-ts-mode) . eglot-ensure))
 
 ;;; Completion ui in minibuffer
 (use-package vertico
@@ -735,6 +736,12 @@
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package org
+  :ensure t)
+  ;:config
+  ;(org-babel-do-load-languages 'org-babel-load-languages
+  ;                             '((rust . t))))
+
+(use-package ob-rust
   :ensure t)
 
 (use-package org-modern
